@@ -1,0 +1,16 @@
+# Environment
+.env
+
+# Rust
+target/
+Cargo.lock
+
+# Editor / Agents
+.vscode/
+.agents/
+.claude/
+skills-lock.json
+
+# OS
+.DS_Store
+Thumbs.db

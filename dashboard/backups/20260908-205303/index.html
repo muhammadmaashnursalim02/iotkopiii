@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Coffee E-Nose IoT Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <h1>IoT E-Nose Dashboard</h1>
+        <div class="header-controls">
+            <!-- Tab Navigasi -->
+            <button class="nav-btn active" onclick="switchTab('monitoring')">Monitoring</button>
+            <button class="nav-btn" onclick="switchTab('ota')">OTA & Admin</button>
+            
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 15px;" id="lastUpdate">Last Update: Just now</span>
+            <select class="device-selector">
+                <option>DAQ01 - Chamber A</option>
+                <option>DAQ02 - Chamber B</option>
+                <option>DAQ03 - Chamber C</option>
+            </select>
+            <div class="status-badge">ONLINE</div>
+        </div>
+    </div>
+
+    <!-- TAB MONITORING (Default) -->
+    <div id="tab-monitoring" class="tab-content active">
+        <div class="top-row">
+            <div class="card">
+                <h2>TinyML Inference (Hierarchical)</h2>
+                <div class="ai-result" style="justify-content: flex-start; gap: 40px;">
+                    <!-- Level 1 -->
+                    <div>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">L1: Species</span><br>
+                        <span class="prediction">Arabica</span><br>
+                        <span style="color: var(--success); font-weight:bold;">98%</span>
+                    </div>
+                    <!-- Level 2 -->
+                    <div>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">L2: Roast</span><br>
+                        <span class="prediction">Roasted</span><br>
+                        <span style="color: var(--success); font-weight:bold;">95%</span>
+                    </div>
+                    <!-- Level 3 -->
+                    <div>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">L3: Sample ID</span><br>
+                        <span class="prediction" style="color:#e07a5f;">C09</span><br>
+                        <span style="color: #e07a5f; font-weight:bold;">72%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Environment (DHT22)</h2>
+                <div class="env-data">
+                    <div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Temperature</span><br>
+                        <span class="env-val" style="color: #e9c46a;" id="tempVal">31.8°C</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Humidity</span><br>
+                        <span class="env-val" style="color: #4cc9f0;" id="humVal">67.1%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sensor-grid">
+            <div class="sensor-box"><span class="sensor-label">S1 (MQ-3)</span><span class="sensor-val" style="color:#ffadad" id="s1">1.65V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S2 (MQ-6)</span><span class="sensor-val" style="color:#ffd6a5" id="s2">1.27V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S3 (MQ-7)</span><span class="sensor-val" style="color:#fdffb6" id="s3">1.23V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S4 (MQ-135)</span><span class="sensor-val" style="color:#caffbf" id="s4">1.87V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S5 (TGS2600)</span><span class="sensor-val" style="color:#9bf6ff" id="s5">1.01V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S6 (TGS2602)</span><span class="sensor-val" style="color:#a0c4ff" id="s6">0.95V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S7 (TGS2611)</span><span class="sensor-val" style="color:#bdb2ff" id="s7">1.12V</span></div>
+            <div class="sensor-box"><span class="sensor-label">S8 (TGS2620)</span><span class="sensor-val" style="color:#ffc6ff" id="s8">1.30V</span></div>
+        </div>
+
+        <div class="bottom-row">
+            <div class="card">
+                <h2>E-Nose Transient Response (500s)</h2>
+                <div class="chart-container">
+                    <canvas id="sensorChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Raw Data Log</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>L1</th>
+                                <th>L2</th>
+                                <th>L3</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <tr><td>13:24:05</td><td>Arabica</td><td>Roasted</td><td>C09</td></tr>
+                            <tr><td>13:23:05</td><td>Arabica</td><td>Roasted</td><td>C09</td></tr>
+                            <tr><td>13:22:05</td><td>Robusta</td><td>Green</td><td>C02</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="actions">
+                    <button>Export CSV</button>
+                    <button onclick="window.open('report_template.html', '_blank')">View PDF Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB OTA & ADMIN -->
+    <div id="tab-ota" class="tab-content" style="display: none;">
+        <div class="top-row" style="grid-template-columns: 1fr 1fr;">
+            <!-- Form Upload OTA -->
+            <div class="card">
+                <h2>Firmware OTA Deployment (MLOps)</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Upload hasil Model ML Cloud terbaru (format .bin) untuk dikirim ke ESP32.</p>
+                
+                <div class="ota-form" style="margin-top: 20px;">
+                    <label style="color: var(--text-muted); font-size: 0.8rem;">Target Device</label><br>
+                    <select class="device-selector" style="width: 100%; margin-bottom: 15px; margin-top: 5px;">
+                        <option>ALL DEVICES</option>
+                        <option>DAQ01</option>
+                        <option>DAQ02</option>
+                    </select>
+                    
+                    <br><label style="color: var(--text-muted); font-size: 0.8rem;">Firmware Version</label><br>
+                    <input type="text" class="device-selector" style="width: 100%; box-sizing: border-box; margin-bottom: 15px; margin-top: 5px;" placeholder="e.g. v2.0.1_svm">
+                    
+                    <br><label style="color: var(--text-muted); font-size: 0.8rem;">Firmware File (.bin)</label>
+                    <div style="border: 2px dashed var(--border); padding: 20px; text-align: center; margin-bottom: 15px; background: #1a1410; margin-top: 5px;">
+                        <input type="file" id="fwFile" accept=".bin" style="color: var(--text-muted);">
+                    </div>
+                    
+                    <button style="width: 100%; background: var(--success); color: #000; font-weight: bold; padding: 10px; border: none; border-radius: 4px; cursor: pointer;">Deploy to Edge</button>
+                </div>
+            </div>
+
+            <!-- Status Perangkat OTA -->
+            <div class="card">
+                <h2>Device Fleet Status</h2>
+                <table style="margin-top: 15px; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="color: var(--text-muted); text-align: left;">Device ID</th>
+                            <th style="color: var(--text-muted); text-align: left;">Current FW</th>
+                            <th style="color: var(--text-muted); text-align: left;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border);">DAQ01</td>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border);">v1.0.0_edgeimpulse</td>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--danger);">Needs Update</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border);">DAQ02</td>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border);">v2.0.1_svm</td>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--success);">Up to date</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border);">DAQ03</td>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border);">v1.0.0_edgeimpulse</td>
+                            <td style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--danger);">Needs Update</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Fungsi pindah Tab
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId).style.display = 'block';
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "passed": 12,
+  "checks": [
+    "Live default: disconnected, eight empty sensors, empty environment/predictions, no chart lines, CSV disabled",
+    "Demo: 61 displayed samples, eight SVG curves, separate three confidence scores",
+    "Device selection updates chart identity, sensor readings and hierarchical predictions",
+    "Sensor toggles: all off empty state, one on exactly one curve",
+    "Downloaded CSV: 61 rows exactly match every displayed cell, all eight sensors retained despite toggle filter",
+    "Report link opens original template; SHA-256 unchanged",
+    "Tabs: mouse navigation, arrow and End keyboard navigation, focus and panel visibility",
+    "OTA rejects missing target/version/file, malformed literal version, wrong extension, empty and oversized files",
+    "OTA local inspection: exact bytes/size/SHA-256; no upload claim; deploy disabled; edits invalidate inspection",
+    "Responsive: Monitor and OTA no page overflow at 1440, 1024, 768, 390, 320 px",
+    "Returning Live clears Demo rows/values/export; Live device selection and reload never invent telemetry",
+    "Zero browser JS/console errors; zero HTTP/HTTPS/WebSocket requests"
+  ],
+  "browser": "Installed Chrome via Playwright, headless, file://",
+  "console_errors": [],
+  "external_requests": [],
+  "report_sha256": "cc3d40357e3a542e3255dbec0aee601584aaeb983e5f898ced29db8902eab493"
+}

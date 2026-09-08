@@ -1,0 +1,220 @@
+:root {
+    --bg-main: #120e0b;
+    --bg-card: #221a16;
+    --accent: #d4a373;
+    --text-main: #e8d8ce;
+    --text-muted: #8c7a6b;
+    --success: #a3b18a;
+    --danger: #e07a5f;
+    --border: #3d2f27;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* TAB SYSTEM */
+.nav-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.nav-btn.active {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+}
+.nav-btn:hover:not(.active) {
+    border-color: var(--text-muted);
+    color: var(--text-main);
+}
+.level-box {
+    text-align: center;
+    border-right: 1px solid var(--border);
+    padding: 0 15px;
+}
+.level-box:last-child {
+    border-right: none;
+}
+.level-title {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+.conf-small {
+    font-size: 1.1rem;
+    color: var(--success);
+    font-weight: bold;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
+}
+.header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.header-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.device-selector {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 4px;
+    outline: none;
+}
+.status-badge {
+    background: var(--success);
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* TOP PANELS */
+.top-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.card h2 {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.ai-result {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.prediction {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+.confidence {
+    text-align: right;
+}
+.confidence-val {
+    font-size: 1.8rem;
+    color: var(--success);
+}
+
+.env-data {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+.env-val {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* SENSOR GRID */
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+}
+.sensor-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 15px 10px;
+    text-align: center;
+}
+.sensor-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    display: block;
+}
+.sensor-val {
+    font-size: 1.2rem;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+/* BOTTOM ROW */
+.bottom-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+.table-container {
+    height: 300px;
+    overflow-y: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+th, td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+}
+th {
+    color: var(--text-muted);
+    position: sticky;
+    top: 0;
+    background: var(--bg-card);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+button {
+    background: var(--border);
+    color: var(--text-main);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+button:hover {
+    background: var(--accent);
+    color: var(--bg-main);
+}

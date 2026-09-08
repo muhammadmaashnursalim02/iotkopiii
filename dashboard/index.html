@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Coffee Lab — E-Nose Monitor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Lewati ke konten</a>
+  
+  <header class="app-header">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">CL</span>
+      <div class="brand-text">
+        <span style="font-weight: 600; color: var(--ink); letter-spacing: 0.1em; font-size: 13px;">COFFEE LAB</span>
+        <small style="font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--muted);">E-NOSE WORKSPACE</small>
+      </div>
+    </a>
+    <nav class="tabs" role="tablist" aria-label="Workspace">
+      <button id="monitorTab" role="tab" aria-selected="true" aria-controls="monitorPanel">Monitor</button>
+      <button id="otaTab" role="tab" aria-selected="false" aria-controls="otaPanel" tabindex="-1">OTA & Admin</button>
+    </nav>
+    <div class="status-bar" style="display: flex; gap: 8px; font-family: var(--font-mono); font-size: 11px;">
+      <span style="color: var(--muted);">STATUS:</span>
+      <span id="connectionStatus" role="status" style="color: var(--muted);">Belum terhubung</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="toolbar" aria-label="Sumber data">
+      <div class="toolbar-controls">
+        <label>Target
+          <select id="deviceSelect">
+            <option value="DAQ01">DAQ01 — Chamber A</option>
+            <option value="DAQ02">DAQ02 — Chamber B</option>
+            <option value="DAQ03">DAQ03 — Chamber C</option>
+          </select>
+        </label>
+        <label>Mode
+          <select id="dataMode">
+            <option value="live">Live — Tdk Terhubung</option>
+            <option value="demo">Demo — Simulasi</option>
+          </select>
+        </label>
+      </div>
+      <p id="lastUpdate" class="muted" style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;">Belum ada data diterima</p>
+    </div>
+    
+    <p class="notice" id="modeNotice">Live belum terhubung ke sumber telemetri. Tidak ada pembacaan atau prediksi aktual.</p>
+
+    <div id="monitorPanel" role="tabpanel" aria-labelledby="monitorTab">
+      <div class="monitor-grid">
+        <section class="panel chart-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">AKUISISI / <span id="chartDevice">DAQ01</span></p>
+              <h2>Respons delapan sensor</h2>
+            </div>
+            <span class="tiny-label">MOS · VOLT</span>
+          </div>
+          <div class="chart-wrap">
+            <svg id="sensorChart" viewBox="0 0 900 300" role="img" aria-label="Grafik tegangan sensor terhadap waktu"></svg>
+            <div id="chartEmpty" class="empty-overlay">
+              <strong>Menunggu sumber data</strong>
+              <span>Pilih Demo untuk menjelajahi contoh respons sensor.</span>
+            </div>
+          </div>
+          <div class="chart-footer">
+            <span id="chartCaption">Tidak ada sampel · sumbu waktu relatif (detik)</span>
+            <span>Skala tampilan 0–5 V</span>
+          </div>
+          <div class="sensor-grid" id="sensorGrid" aria-label="Sensor; centang untuk tampilkan kurva"></div>
+          <p class="footnote">Centang kanal untuk menampilkan kurva. Nilai sensor tetap tersedia saat kurva disembunyikan.</p>
+        </section>
+
+        <aside class="right-column">
+          <section class="panel environment">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">KONDISI CHAMBER</p>
+                <h2>Lingkungan</h2>
+              </div>
+              <span class="tiny-label">DHT22</span>
+            </div>
+            <div class="env-grid">
+              <div>
+                <span class="muted">Suhu</span>
+                <p><strong id="tempVal">—</strong><span>°C</span></p>
+              </div>
+              <div>
+                <span class="muted">Kelembapan</span>
+                <p><strong id="humVal">—</strong><span>% RH</span></p>
+              </div>
+            </div>
+          </section>
+          <section class="panel inference">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">INFERENSI AI</p>
+                <h2>Profil Kopi</h2>
+              </div>
+              <span id="predictionSource" class="tiny-label">TANPA DATA</span>
+            </div>
+            <div id="predictions"></div>
+            <p class="footnote">Confidence adalah keyakinan model, bukan akurasi mutlak.</p>
+          </section>
+        </aside>
+      </div>
+
+      <section class="panel log-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">DATA SESI</p>
+            <h2>Log pembacaan <span id="sampleCount" style="color: var(--accent); margin-left: 8px;">0 sampel</span></h2>
+          </div>
+          <div class="actions">
+            <button id="exportCsv" disabled>Ekspor CSV</button>
+            <a class="button secondary" href="report_template.html" target="_blank" rel="noopener" id="reportLink" style="font-family: var(--font-mono); font-size: 11px; padding: 8px 12px; border: 1px solid var(--line); color: var(--ink);">Template Laporan</a>
+          </div>
+        </div>
+        <div class="table-scroll" tabindex="0" aria-label="Log pembacaan; gulir untuk semua kolom">
+          <table>
+            <thead>
+              <tr>
+                <th>t (s)</th>
+                <th>Suhu °C</th>
+                <th>RH %</th>
+                <th>S1 V</th>
+                <th>S2 V</th>
+                <th>S3 V</th>
+                <th>S4 V</th>
+                <th>S5 V</th>
+                <th>S6 V</th>
+                <th>S7 V</th>
+                <th>S8 V</th>
+                <th>L1 / conf.</th>
+                <th>L2 / conf.</th>
+                <th>L3 / conf.</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr>
+                <td colspan="14" class="empty-row">Belum ada pembacaan. Data Live tidak disimulasikan.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding: 16px 24px;">
+          <p id="exportStatus" role="status" class="footnote" style="margin: 0;"></p>
+        </div>
+      </section>
+    </div>
+
+    <section id="otaPanel" role="tabpanel" aria-labelledby="otaTab" hidden>
+      <div class="panel" style="max-width: 640px; margin: 40px auto;">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">OTA / CLOUD DEPLOYMENT</p>
+            <h2>Deploy Firmware (G09)</h2>
+          </div>
+        </div>
+        <p class="muted" style="margin-bottom: 32px;">Upload file binari model ML (TinyML) terbaru khusus untuk ESP32 kelompok G09.</p>
+        
+        <form id="otaForm" novalidate>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <label for="fwVersion">Versi Firmware
+              <input id="fwVersion" type="text" placeholder="e.g. v2.0.1_svm" maxlength="64" style="width: 100%;">
+            </label>
+            <label for="fwFile">Berkas Firmware (.bin)
+              <input id="fwFile" type="file" accept=".bin" style="width: 100%;">
+            </label>
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--line); padding-top: 24px;">
+            <button class="primary" type="submit" id="inspectFirmware">Validasi Lokal</button>
+            <button type="button" id="deployFirmware" disabled>Deploy ke ESP32 (G09)</button>
+          </div>
+          <p id="otaFeedback" role="status" aria-live="polite" style="font-family: var(--font-mono); font-size: 11px; margin-top: 16px;"></p>
+          <dl id="fileInspection" hidden></dl>
+        </form>
+
+        <div style="margin-top: 40px;">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">STATUS ARMADA</p>
+              <h3 style="font-size: 14px;">ESP32_G09 Target</h3>
+            </div>
+          </div>
+          <table class="data-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Perangkat</th>
+                <th style="text-align: left;">Versi Saat Ini</th>
+                <th style="text-align: left;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: left;">ESP32_G09</td>
+                <td style="text-align: left; font-family: var(--font-mono);">v1.0.0_edgeimpulse</td>
+                <td style="text-align: left; color: var(--accent);">Butuh Update</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    
+    <footer>
+      <span>COFFEE LAB <span style="color: var(--line); margin: 0 8px;">/</span> E-NOSE WORKSPACE</span>
+      <span>0 ERROR · STRICT DENSITY</span>
+    </footer>
+  </main>
+  
+  <noscript>Aktifkan JavaScript untuk interaksi dashboard.</noscript>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>E-Nose Analytics Report</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #2c3e50; line-height: 1.6; }
+        
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #34495e; 
+            padding-bottom: 20px; 
+            margin-bottom: 30px; 
+        }
+        .header h1 { 
+            margin: 0; 
+            color: #2c3e50; 
+            font-size: 28px; 
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase; 
+        }
+        .header p { 
+            margin: 8px 0 0; 
+            color: #7f8c8d; 
+            font-size: 13px; 
+        }
+        
+        .summary-box { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 30px; }
+        .summary-box h3 { margin-top: 0; color: #2c3e50; font-size: 16px; }
+        
+        .metrics-grid { display: table; width: 100%; margin-bottom: 30px; }
+        .metric-col { display: table-cell; width: 33.3%; text-align: center; padding: 15px; border: 1px solid #bdc3c7; }
+        .metric-value { font-size: 28px; font-weight: bold; color: #2980b9; margin-bottom: 5px; }
+        .metric-label { font-size: 11px; text-transform: uppercase; color: #7f8c8d; font-weight: bold; }
+        
+        h2 { font-size: 18px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 30px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
+        th { background-color: #34495e; color: white; text-align: left; padding: 10px; }
+        td { border-bottom: 1px solid #ddd; padding: 10px; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .footer { margin-top: 50px; font-size: 10px; text-align: center; color: #95a5a6; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Smart Coffee E-Nose Analytics</h1>
+        <p>Generated on: <strong>{{ DATE_GENERATED }}</strong> | System ID: <strong>DAQ01 - Cluster G09</strong></p>
+    </div>
+
+    <div class="summary-box">
+        <h3>Executive Summary</h3>
+        <p>Laporan ini merangkum hasil akuisisi data dan klasifikasi bertingkat (Hierarchical SVM) dari sistem E-Nose. Data ditarik secara otomatis dari <em>Azure PostgreSQL Database</em> berdasarkan siklus operasional terbaru.</p>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-col">
+            <div class="metric-value">{{ TOTAL_SAMPLES }}</div>
+            <div class="metric-label">Total Sample Diukur</div>
+        </div>
+        <div class="metric-col">
+            <div class="metric-value">{{ AVG_CONFIDENCE }}%</div>
+            <div class="metric-label">Rata-Rata Confidence (L1)</div>
+        </div>
+        <div class="metric-col">
+            <div class="metric-value">{{ ANOMALY_COUNT }}</div>
+            <div class="metric-label">Unknown / Anomali</div>
+        </div>
+    </div>
+
+    <h2>1. Distribusi Kelas Kopi (Level 1, 2, dan 3)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Spesies (L1)</th>
+                <th>Roast State (L2)</th>
+                <th>Sample ID (L3)</th>
+                <th>Jumlah Terdeteksi</th>
+                <th>Avg Confidence</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Arabica</td>
+                <td>Roasted</td>
+                <td>C09</td>
+                <td>{{ COUNT_C09 }}</td>
+                <td>{{ AVG_CONF_C09 }}%</td>
+            </tr>
+            <tr>
+                <td>Arabica</td>
+                <td>Green Beans</td>
+                <td>C01</td>
+                <td>{{ COUNT_C01 }}</td>
+                <td>{{ AVG_CONF_C01 }}%</td>
+            </tr>
+            <tr>
+                <td>Robusta</td>
+                <td>Roasted</td>
+                <td>C02</td>
+                <td>{{ COUNT_C02 }}</td>
+                <td>{{ AVG_CONF_C02 }}%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Cuplikan Data Raw Sensor (5 Pembacaan Terakhir)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Waktu</th>
+                <th>Suhu</th>
+                <th>MQ-3</th>
+                <th>MQ-135</th>
+                <th>TGS2602</th>
+                <th>Prediksi Final</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ ROW_DATA_PLACEHOLDER }}
+            <!-- Contoh isi baris yang akan di-generate Rust -->
+            <tr>
+                <td>10:45:02</td>
+                <td>32.1°C</td>
+                <td>1.65V</td>
+                <td>1.87V</td>
+                <td>0.95V</td>
+                <td>Arabica (98%)</td>
+            </tr>
+            <tr>
+                <td>10:44:02</td>
+                <td>32.0°C</td>
+                <td>1.64V</td>
+                <td>1.86V</td>
+                <td>0.94V</td>
+                <td>Arabica (96%)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Dokumen ini dihasilkan secara otomatis oleh sistem Backend Kelas C (Rust).<br>
+        Algoritma Machine Learning Lanjutan dikelola dalam arsitektur Closed-Loop MLOps.
+    </div>
+
+</body>
+</html>
