@@ -1,5 +1,5 @@
 # Build stage
-FROM rust:1.80-slim-bookworm as builder
+FROM rust:slim-bookworm as builder
 
 WORKDIR /usr/src/app
 # Copy manifest dan source code
@@ -12,7 +12,7 @@ COPY migrations ./migrations
 RUN apt-get update && apt-get install -y pkg-config libssl-dev
 
 # Build rilis
-RUN cargo build --release --bin backend-iot
+RUN cargo build --locked --release --bin backend-iot
 
 # Production stage
 FROM debian:bookworm-slim
