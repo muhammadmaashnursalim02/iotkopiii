@@ -27,7 +27,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/iot-backend:latest
+          tags: ghcr.io/muhammadmaashnursalim02/iotkopiii/iot-backend:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -38,4 +38,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: 'ghcr.io/${{ github.repository }}/iot-backend:latest'
+          images: 'ghcr.io/muhammadmaashnursalim02/iotkopiii/iot-backend:latest'
