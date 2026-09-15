@@ -1,5 +1,7 @@
 # Coffee Lab dashboard
 
+**Update:** Live PostgreSQL, PDF nyata, dan upload/download OTA server sudah terhubung. Ikuti [LIVE_API.md](LIVE_API.md) dan [REPORT_OTA.md](REPORT_OTA.md). Catatan di bawah adalah baseline offline awal; klaim template-only/OTA belum terhubung bukan status saat ini.
+
 Buka `index.html` langsung di browser modern. HTML, CSS, JS terpisah; tanpa CDN, API, atau cloud.
 
 - Live default kosong: sumber telemetri belum terhubung.

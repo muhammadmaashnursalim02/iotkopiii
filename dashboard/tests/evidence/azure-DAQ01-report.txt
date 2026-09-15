@@ -1,0 +1,30 @@
+SMART COFFEE / E-NOSE
+TELEMETRY ANALYTICS REPORT
+Chamber filter: DAQ01
+Source: Azure PostgreSQL telemetry history (not hardware connectivity)
+Sample count: 18
+Window: latest 200 samples maximum; not entire database
+Time start: 2026-09-09T08:14:41.045374+00:00
+Time end: 2026-09-09T08:18:42.436656+00:00
+SENSOR / ENVIRONMENT STATISTICS
+Finite readings only; missing values excluded. Sensor units V; temperature C; humidity % RH.
+s1_mq3: n=18 min=1.6000 mean=1.6583 max=1.7000
+s2_mq6: n=18 min=1.2400 mean=1.2722 max=1.3000
+s3_mq7: n=18 min=1.1800 mean=1.2250 max=1.2800
+s4_mq135: n=18 min=1.8200 mean=1.8794 max=1.9300
+s5_tgs2600: n=18 min=0.9800 mean=1.0161 max=1.0500
+s6_tgs2602: n=18 min=0.9300 mean=0.9472 max=0.9800
+s7_tgs2611: n=18 min=1.0700 mean=1.1222 max=1.1600
+s8_tgs2620: n=18 min=1.2600 mean=1.2978 max=1.3300
+temperature: n=18 min=32.1600 mean=32.5033 max=32.9800
+humidity: n=18 min=64.2200 mean=65.1044 max=66.1300
+PREDICTION DISTRIBUTIONS / MODEL CONFIDENCE
+Accuracy unavailable: no ground-truth labels. Confidence is not accuracy.
+Labels truncated to 96 characters; counts group by displayed label.
+L1 mean confidence: 96.7222% (n=18; missing/invalid=0)
+L1 Arabica: 18
+L2 mean confidence: 94.6667% (n=18; missing/invalid=0)
+L2 Roasted: 18
+L3 mean confidence: 88.1667% (n=18; missing/invalid=0)
+L3 C09: 18
+COFFEE LAB / G09 - PostgreSQL history - Page 1 / 1

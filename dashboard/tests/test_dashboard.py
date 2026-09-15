@@ -59,21 +59,19 @@ with sync_playwright() as p:
     assert all(row['mode'] == 'DEMO' and row['device'] == 'DAQ02' for row in exported)
     displayed = page.locator('#logTableBody tr').evaluate_all('(rows) => rows.map(r => [...r.cells].map(c => c.textContent))')
     for row, cells in zip(exported, displayed):
-        assert list(row.values())[2:13] == cells[:11]
-        assert [row['L1_species']+' / '+row['L1_confidence_percent']+'%', row['L2_roast']+' / '+row['L2_confidence_percent']+'%', row['L3_sample_id']+' / '+row['L3_confidence_percent']+'%'] == cells[11:]
+        assert list(row.values())[5:16] == cells[4:15]
+        assert cells[:4] == ['—','—',row['device'],'—']
+        assert [row['L1_species']+' / '+row['L1_confidence_percent']+'%', row['L2_roast']+' / '+row['L2_confidence_percent']+'%', row['L3_sample_id']+' / '+row['L3_confidence_percent']+'%'] == cells[15:]
     passed('Downloaded CSV: 61 rows exactly match every displayed cell, all eight sensors retained despite toggle filter')
     for checkbox in page.locator('#sensorGrid input').all():
         checkbox.check()
     page.screenshot(path=str(OUT/'desktop-demo.png'), full_page=True)
-    expect(page.locator('#reportLink')).to_have_attribute('href','report_template.html')
-    with page.expect_popup() as popup:
-        page.click('#reportLink')
-    popup.value.wait_for_load_state()
-    assert popup.value.title() == 'E-Nose Analytics Report'
-    popup.value.close()
+    expect(page.locator('#reportLink')).to_have_attribute('aria-disabled','true')
+    page.click('#reportLink', force=True)
+    expect(page.locator('#exportStatus')).to_contain_text('PDF hanya untuk data Live')
     original_hash = json.loads((ROOT/'backups/20260908-205303/manifest.json').read_text())['report_template.html']
     assert hashlib.sha256((ROOT/'report_template.html').read_bytes()).hexdigest() == original_hash
-    passed('Report link opens original template; SHA-256 unchanged')
+    passed('Offline/Demo PDF blocked honestly; original template SHA-256 unchanged')
     page.click('#otaTab')
     expect(page.locator('#otaPanel')).to_be_visible()
     expect(page.locator('#monitorPanel')).to_be_hidden()
@@ -84,10 +82,8 @@ with sync_playwright() as p:
     expect(page.locator('#otaTab')).to_be_focused()
     passed('Tabs: mouse navigation, arrow and End keyboard navigation, focus and panel visibility')
     page.click('#inspectFirmware')
-    expect(page.locator('#otaFeedback')).to_contain_text('Pilih perangkat')
     expect(page.locator('#otaFeedback')).to_contain_text('Versi harus')
     expect(page.locator('#otaFeedback')).to_contain_text('Pilih berkas')
-    page.select_option('#otaDevice','DAQ03')
     page.fill('#fwVersion',' v2.0.1 ')
     page.set_input_files('#fwFile',{'name':'wrong.txt','mimeType':'text/plain','buffer':b'test'})
     page.click('#inspectFirmware')
@@ -100,7 +96,7 @@ with sync_playwright() as p:
     page.set_input_files('#fwFile',{'name':'large.bin','mimeType':'application/octet-stream','buffer':bytes(16*1024*1024+1)})
     page.click('#inspectFirmware')
     expect(page.locator('#otaFeedback')).to_contain_text('16 MiB')
-    passed('OTA rejects missing target/version/file, malformed literal version, wrong extension, empty and oversized files')
+    passed('OTA fixed ESP32_G09 target; rejects missing version/file, malformed literal version, wrong extension, empty and oversized files')
     payload = bytes(range(32))
     page.set_input_files('#fwFile',{'name':'inspection-only.bin','mimeType':'application/octet-stream','buffer':payload})
     page.click('#inspectFirmware')

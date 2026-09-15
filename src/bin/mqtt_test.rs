@@ -1,67 +1,67 @@
-use rumqttc::{AsyncClient, MqttOptions, QoS, Transport};
+//! Read-only subscriber probe by default. Publishing requires explicit separate env credentials.
+use backend_iot::config::{mqtt_options, TOPIC};
+use rumqttc::{AsyncClient, Event, Incoming, QoS, SubscribeReasonCode};
 use std::time::Duration;
-use tokio::time;
-use rustls::ClientConfig;
 
 #[tokio::main]
 async fn main() {
-    let host = "yb413bb1.ala.asia-southeast1.emqxsl.com";
-    let port = 8883;
-    let topic = "iot5a/g09/telemetry";
-
-    // GANTI DENGAN USERNAME & PASSWORD YANG KAMU BUAT DI MENU AUTHENTICATION EMQX
-    let emqx_username = "esp32_kelas_a"; 
-    let emqx_password = "PasswordA123!"; 
-
-    // Payload dengan 8 sensor dan klasifikasi bertingkat
-    let payload = r#"{
-        "device_id": "DAQ01",
-        "coffee_id": "C09",
-        "s1_mq3": 1.65,
-        "s2_mq6": 1.27,
-        "s3_mq7": 1.23,
-        "s4_mq135": 1.87,
-        "s5_tgs2600": 1.01,
-        "s6_tgs2602": 0.95,
-        "s7_tgs2611": 1.12,
-        "s8_tgs2620": 1.30,
-        "temperature": 32.5,
-        "humidity": 65.2,
-        "pred_level_1": "Arabica",
-        "conf_level_1": 0.98,
-        "pred_level_2": "Roasted",
-        "conf_level_2": 0.95,
-        "pred_level_3": "Unknown",
-        "conf_level_3": 0.45
-    }"#;
-
-    // Setup koneksi aman (TLS/SSL) untuk port 8883
-    let mut root_store = rustls::RootCertStore::empty();
-    root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
-    let client_config = ClientConfig::builder()
-        .with_root_certificates(root_store)
-        .with_no_client_auth();
-
-    let mut mqttoptions = MqttOptions::new("rust_tester_emqx", host, port);
-    mqttoptions.set_credentials(emqx_username, emqx_password);
-    mqttoptions.set_keep_alive(Duration::from_secs(5));
-    mqttoptions.set_transport(Transport::tls_with_config(client_config.into()));
-
-    let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
-
-    println!("Menghubungkan ke EMQX ({}:{}) dengan user: {}...", host, port, emqx_username);
-
-    // Kirim data
-    match client.publish(topic, QoS::AtLeastOnce, false, payload.as_bytes()).await {
-        Ok(_) => println!("✅ Berhasil Request Publish!"),
-        Err(e) => println!("❌ Gagal Publish: {:?}", e),
-    }
-
-    // Biarkan eventloop jalan sebentar agar data terkirim beneran
-    for _ in 0..3 {
-        if let Ok(event) = eventloop.poll().await {
-            println!("Status Network EMQX: {:?}", event);
+    dotenvy::dotenv().ok();
+    let publish = std::env::args().any(|a| a == "--publish");
+    let result = tokio::time::timeout(Duration::from_secs(25), probe(publish)).await;
+    match result {
+        Ok(Ok(())) => {}
+        Ok(Err(e)) => {
+            eprintln!("MQTT probe failed: {e}");
+            std::process::exit(1);
         }
-        time::sleep(Duration::from_secs(1)).await;
+        Err(_) => {
+            eprintln!("MQTT probe timeout: no confirmed acknowledgement");
+            std::process::exit(1);
+        }
+    }
+}
+async fn probe(publish: bool) -> Result<(), String> {
+    let (client, mut events) = AsyncClient::new(mqtt_options(publish)?, 10);
+    loop {
+        match events.poll().await.map_err(|e| e.to_string())? {
+            Event::Incoming(Incoming::ConnAck(ack)) => {
+                println!("MQTT ConnAck {:?}", ack.code);
+                if publish {
+                    let file = backend_iot::config::required("MQTT_TEST_PAYLOAD_FILE")?;
+                    let bytes = std::fs::read(file).map_err(|e| e.to_string())?;
+                    let data: backend_iot::models::TelemetryPayload =
+                        serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+                    if !data.device_id.starts_with("SIMTEST-") {
+                        return Err("Simulated payload device_id must start SIMTEST-".into());
+                    }
+                    client
+                        .publish(TOPIC, QoS::AtLeastOnce, false, bytes)
+                        .await
+                        .map_err(|e| e.to_string())?;
+                } else {
+                    client
+                        .subscribe(TOPIC, QoS::AtLeastOnce)
+                        .await
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+            Event::Incoming(Incoming::SubAck(ack)) if !publish => {
+                if ack.return_codes.is_empty()
+                    || ack.return_codes.contains(&SubscribeReasonCode::Failure)
+                {
+                    return Err("SubAck authorization denied".into());
+                }
+                println!(
+                    "MQTT SubAck topic={TOPIC} qos={:?}; probe read-only, no DB delivery claimed",
+                    ack.return_codes
+                );
+                return Ok(());
+            }
+            Event::Incoming(Incoming::PubAck(ack)) if publish => {
+                println!("MQTT PubAck pkid={}; simulated publish broker-confirmed, DB readback still required", ack.pkid);
+                return Ok(());
+            }
+            _ => {}
+        }
     }
 }

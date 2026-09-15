@@ -1,10 +1,30 @@
+/* ==========================================================================
+   THEME TOGGLE & LIGHT MODE VARIABLES
+   ========================================================================== */
+
+html.light {
+  --bg: #ffffff;
+  --surface: #f4f4f5;
+  --surface-alt: #e4e4e7;
+  --ink: #09090b;
+  --muted: #71717a;
+  --line: #d4d4d8;
+  --accent: #d97706; /* Darker amber for contrast on light */
+  --accent-muted: #fef3c7;
+  color-scheme: light;
+}
+
+html.light .empty-overlay {
+  background: rgba(244, 244, 245, 0.9);
+}
+
 :root {
-  --bg: #0c0a09;
-  --surface: #171514;
-  --surface-alt: #1c1917;
-  --ink: #e7e5e4;
-  --muted: #78716c;
-  --line: #292524;
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface-alt: #27272a;
+  --ink: #fafafa;
+  --muted: #a1a1aa;
+  --line: #3f3f46;
   --accent: #d97706;
   --accent-muted: #78350f;
   --green: #65a30d;
@@ -13,6 +33,15 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   color-scheme: dark;
+}
+
+#lastUpdate { overflow-wrap: anywhere; min-width: 0; }
+@media (max-width: 600px) {
+  header.app-header { grid-template-columns: 1fr; }
+  .toolbar, .toolbar-controls { flex-wrap: wrap; }
+  .status-bar { flex-wrap: wrap; min-width: 0; }
+  .toolbar-controls { max-width: 100%; }
+  #otaForm button { white-space: normal; }
 }
 
 * {
@@ -604,3 +633,25 @@ footer {
 
 /* FIX HIDDEN ATTRIBUTE OVERRIDES */
 [hidden] { display: none !important; }
+
+.brand-title { font-weight: 600; color: var(--ink); letter-spacing: 0.1em; font-size: 13px; }
+.brand-subtitle { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--muted); }
+.status-bar { display: flex; gap: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+#connectionStatus { color: var(--muted); }
+#lastUpdate { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; }
+.accent-mono { color: var(--accent); margin-left: 8px; font-family: var(--font-mono); }
+#reportLink { font-family: var(--font-mono); font-size: 11px; padding: 8px 12px; border: 1px solid var(--line); color: var(--ink); }
+.ota-container { max-width: 640px; margin: 40px auto; }
+.ota-container > p.muted { margin-bottom: 32px; }
+input[type="text"], input[type="file"], input[type="password"] { width: 100%; }
+.form-group { display: flex; flex-direction: column; gap: 16px; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; border-top: 1px solid var(--line); padding-top: 24px; }
+#otaFeedback { font-family: var(--font-mono); font-size: 11px; margin-top: 16px; }
+.fleet-status { margin-top: 40px; }
+.fleet-status h3 { font-size: 14px; }
+.fleet-status th, .fleet-status td { text-align: left; }
+.fleet-status td:nth-child(2) { font-family: var(--font-mono); }
+.fleet-status td:nth-child(3) { color: var(--accent); }
+.sep { color: var(--line); margin: 0 8px; }
+.log-footer { padding: 16px 24px; }
+#exportStatus { margin: 0; }

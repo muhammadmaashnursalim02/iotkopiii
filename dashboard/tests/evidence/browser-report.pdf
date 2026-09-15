@@ -1,0 +1,68 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2950 >>
+stream
+0.17 0.22 0.27 rg 40 739 515 65 re f
+BT /F2 19 Tf 1 1 1 rg 56 774 Td (SMART COFFEE / E-NOSE) Tj ET
+BT /F1 10 Tf 1 1 1 rg 56 752 Td (TELEMETRY ANALYTICS REPORT) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 714 Td (Chamber filter: DAQ01) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 699 Td (Source: Azure PostgreSQL telemetry history \(not hardware connectivity\)) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 684 Td (Sample count: 18) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 669 Td (Window: latest 200 samples maximum; not entire database) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 654 Td (Time start: 2026-09-09T08:14:41.045374+00:00) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 639 Td (Time end: 2026-09-09T08:18:42.436656+00:00) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 624 Td () Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 609 Td (SENSOR / ENVIRONMENT STATISTICS) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 594 Td (Finite readings only; missing values excluded. Sensor units V; temperature C; humidity % RH.) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 579 Td (s1_mq3: n=18 min=1.6000 mean=1.6583 max=1.7000) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 564 Td (s2_mq6: n=18 min=1.2400 mean=1.2722 max=1.3000) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 549 Td (s3_mq7: n=18 min=1.1800 mean=1.2250 max=1.2800) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 534 Td (s4_mq135: n=18 min=1.8200 mean=1.8794 max=1.9300) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 519 Td (s5_tgs2600: n=18 min=0.9800 mean=1.0161 max=1.0500) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 504 Td (s6_tgs2602: n=18 min=0.9300 mean=0.9472 max=0.9800) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 489 Td (s7_tgs2611: n=18 min=1.0700 mean=1.1222 max=1.1600) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 474 Td (s8_tgs2620: n=18 min=1.2600 mean=1.2978 max=1.3300) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 459 Td (temperature: n=18 min=32.1600 mean=32.5033 max=32.9800) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 444 Td (humidity: n=18 min=64.2200 mean=65.1044 max=66.1300) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 429 Td () Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 414 Td (PREDICTION DISTRIBUTIONS / MODEL CONFIDENCE) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 399 Td (Accuracy unavailable: no ground-truth labels. Confidence is not accuracy.) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 384 Td (Labels truncated to 96 characters; counts group by displayed label.) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 369 Td (L1 mean confidence: 96.7222% \(n=18; missing/invalid=0\)) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 354 Td (L1 Arabica: 18) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 339 Td (L2 mean confidence: 94.6667% \(n=18; missing/invalid=0\)) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 324 Td (L2 Roasted: 18) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 309 Td (L3 mean confidence: 88.1667% \(n=18; missing/invalid=0\)) Tj ET
+BT /F1 9 Tf 0.17 0.22 0.27 rg 48 294 Td (L3 C09: 18) Tj ET
+0.7 G 40 48 m 555 48 l S BT /F1 8 Tf 0.4 g 48 33 Td (COFFEE LAB / G09 - PostgreSQL history - Page 1 / 1) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000260 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3398
+%%EOF

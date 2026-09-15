@@ -5,56 +5,135 @@
     <title>E-Nose Analytics Report</title>
     <style>
         @page { size: A4; margin: 20mm; }
-        body { font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #2c3e50; line-height: 1.6; }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            color: #18181b; 
+            line-height: 1.5; 
+            margin: 0; 
+            padding: 0; 
+            background: #ffffff;
+        }
         
         .header { 
-            text-align: center; 
-            border-bottom: 2px solid #34495e; 
-            padding-bottom: 20px; 
-            margin-bottom: 30px; 
+            border-bottom: 2px solid #27272a; 
+            padding-bottom: 16px; 
+            margin-bottom: 32px; 
         }
         .header h1 { 
             margin: 0; 
-            color: #2c3e50; 
-            font-size: 28px; 
+            font-size: 24px; 
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             text-transform: uppercase; 
+            color: #18181b;
         }
         .header p { 
-            margin: 8px 0 0; 
-            color: #7f8c8d; 
-            font-size: 13px; 
+            margin: 4px 0 0; 
+            font-size: 12px; 
+            color: #52525b; 
+            font-family: 'Courier New', Courier, monospace;
         }
         
-        .summary-box { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 30px; }
-        .summary-box h3 { margin-top: 0; color: #2c3e50; font-size: 16px; }
+        .summary-box { 
+            border: 1px solid #3f3f46; 
+            padding: 16px; 
+            margin-bottom: 32px; 
+            background: #f4f4f5;
+        }
+        .summary-box h3 { 
+            margin: 0 0 8px; 
+            font-size: 14px; 
+            text-transform: uppercase;
+            color: #27272a;
+        }
+        .summary-box p {
+            margin: 0;
+            font-size: 12px;
+            color: #3f3f46;
+        }
         
-        .metrics-grid { display: table; width: 100%; margin-bottom: 30px; }
-        .metric-col { display: table-cell; width: 33.3%; text-align: center; padding: 15px; border: 1px solid #bdc3c7; }
-        .metric-value { font-size: 28px; font-weight: bold; color: #2980b9; margin-bottom: 5px; }
-        .metric-label { font-size: 11px; text-transform: uppercase; color: #7f8c8d; font-weight: bold; }
+        .metrics-grid { 
+            display: table; 
+            width: 100%; 
+            margin-bottom: 32px; 
+            table-layout: fixed;
+        }
+        .metric-col { 
+            display: table-cell; 
+            padding: 16px; 
+            border: 1px solid #71717a; 
+            text-align: center;
+        }
+        .metric-col + .metric-col {
+            border-left: none;
+        }
+        .metric-value { 
+            font-size: 24px; 
+            font-weight: 700; 
+            color: #18181b; 
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 4px; 
+        }
+        .metric-label { 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            color: #52525b; 
+            font-weight: 700; 
+        }
         
-        h2 { font-size: 18px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 30px; }
+        h2 { 
+            font-size: 14px; 
+            color: #27272a; 
+            border-bottom: 1px solid #71717a; 
+            padding-bottom: 4px; 
+            margin: 32px 0 12px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
-        th { background-color: #34495e; color: white; text-align: left; padding: 10px; }
-        td { border-bottom: 1px solid #ddd; padding: 10px; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 11px; 
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 32px;
+        }
+        th, td { 
+            border: 1px solid #a1a1aa; 
+            padding: 8px 12px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #27272a; 
+            color: #ffffff; 
+            font-weight: 700; 
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) { 
+            background-color: #f4f4f5; 
+        }
         
-        .footer { margin-top: 50px; font-size: 10px; text-align: center; color: #95a5a6; border-top: 1px solid #eee; padding-top: 10px; }
+        .footer { 
+            margin-top: 48px; 
+            font-size: 9px; 
+            text-align: center; 
+            color: #71717a; 
+            border-top: 1px solid #d4d4d8; 
+            padding-top: 12px; 
+            font-family: 'Courier New', Courier, monospace;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>Smart Coffee E-Nose Analytics</h1>
-        <p>Generated on: <strong>{{ DATE_GENERATED }}</strong> | System ID: <strong>DAQ01 - Cluster G09</strong></p>
+        <p>GENERATED ON: {{ DATE_GENERATED }} | SYSTEM ID: DAQ01 - CLUSTER G09</p>
     </div>
 
     <div class="summary-box">
         <h3>Executive Summary</h3>
-        <p>Laporan ini merangkum hasil akuisisi data dan klasifikasi bertingkat (Hierarchical SVM) dari sistem E-Nose. Data ditarik secara otomatis dari <em>Azure PostgreSQL Database</em> berdasarkan siklus operasional terbaru.</p>
+        <p>Laporan ini merangkum hasil akuisisi data dan klasifikasi bertingkat (Hierarchical SVM) dari sistem E-Nose. Data ditarik secara otomatis dari Azure PostgreSQL Database berdasarkan siklus operasional terbaru.</p>
     </div>
 
     <div class="metrics-grid">

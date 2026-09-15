@@ -1,0 +1,18 @@
+{
+  "passed": 8,
+  "checks": [
+    "Real Azure rows render eight sensors, environment, predictions, timestamp; history not online",
+    "Live CSV has exact real IDs/timestamps and displayed row count",
+    "Real DAQ02 filter empty; clears DAQ01",
+    "HTTP failure honest; no random fallback",
+    "Explicit Demo and CSV remain separate from Live",
+    "Delayed response cannot overwrite new filter/mode",
+    "Nullable legacy fields safe; prediction HTML escaped; bigint ID preserved",
+    "Tab isolation, keyboard, responsive layout, OTA local SHA-256; zero JS errors"
+  ],
+  "url": "http://127.0.0.1:3001",
+  "latest_id": "18",
+  "latest_update": "2026-09-09T08:18:42.436656+00:00",
+  "real_rows": 18,
+  "javascript_errors": []
+}

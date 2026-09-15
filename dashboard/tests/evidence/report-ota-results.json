@@ -1,0 +1,9 @@
+{
+  "pdf_rows": 18,
+  "pdf_metrics": "all 10 sensor/environment summaries and 3 confidence means matched real API; API separately checked against SQL",
+  "ota_fixture_sha256": "f1da75ff3aefa2f0de7ece892452fd2b1ea624d8e6c58ab269d81f27d7e5c1e0",
+  "artifact_id": "ce6e42d9640e4b99b8c205db943ed9dd",
+  "hardware_flashed": false,
+  "active_firmware": null,
+  "javascript_errors": []
+}
