@@ -2,17 +2,16 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  // Theme Toggle
+  // Theme Toggle (Switch)
   const themeToggle = $('themeToggle');
   if (themeToggle) {
     const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
     if (prefersLight) {
       document.documentElement.classList.add('light');
-      themeToggle.textContent = 'GELAP';
+      themeToggle.checked = true;
     }
-    themeToggle.addEventListener('click', () => {
-      const isLight = document.documentElement.classList.toggle('light');
-      themeToggle.textContent = isLight ? 'GELAP' : 'TERANG';
+    themeToggle.addEventListener('change', () => {
+      document.documentElement.classList.toggle('light', themeToggle.checked);
     });
   }
 
