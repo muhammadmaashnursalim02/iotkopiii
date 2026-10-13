@@ -36,7 +36,7 @@ impl MlState {
   if bool::from(Sha256::digest(token.as_bytes()).ct_eq(&Sha256::digest(supplied.as_bytes()))){Ok(())}else{Err((StatusCode::UNAUTHORIZED,"Bearer token required".into()))}
  }
 }
-pub fn router(s:MlState)->Router{Router::new().route("/api/ml/packages",get(list).post(upload)).route("/api/ml/upload",post(upload)).route("/api/ml/experiments",get(list)).route("/api/ml/retrain",post(retrain)).route("/api/ml/validate",post(validate)).route("/api/ml/packages/{id}",get(metadata)).route("/api/ml/packages/{id}/download",get(download)).route("/api/ml/packages/{id}/report",get(report)).route("/api/ml/compare",get(compare)).with_state(s)}
+pub fn router(s:MlState)->Router{Router::new().route("/api/ml/packages",get(list).post(upload)).route("/api/ml/upload",post(upload)).route("/api/ml/experiments",get(list)).route("/api/ml/retrain",post(retrain)).route("/api/ml/classify",post(classify)).route("/api/ml/validate",post(validate)).route("/api/ml/packages/{id}",get(metadata)).route("/api/ml/packages/{id}/download",get(download)).route("/api/ml/packages/{id}/report",get(report)).route("/api/ml/compare",get(compare)).with_state(s)}
 fn response(v:Value)->Response{([(header::CACHE_CONTROL,"no-store"),(header::X_CONTENT_TYPE_OPTIONS,"nosniff")],Json(v)).into_response()}
 fn valid_id(id:&str)->bool{id.len()==32&&id.bytes().all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b))}
 async fn parse(req:Request)->Result<(Package,Value,Vec<u8>),Error>{
@@ -48,6 +48,74 @@ async fn parse(req:Request)->Result<(Package,Value,Vec<u8>),Error>{
 }
 async fn validate(State(s):State<MlState>,req:Request)->Result<Response,Error>{s.auth(req.headers())?;let _permit=s.gate.try_acquire().map_err(|_|(StatusCode::TOO_MANY_REQUESTS,"Registry busy".into()))?;let (_,v,_)=parse(req).await?;Ok(response(v))}
 #[derive(Deserialize)]
+struct ClassifyRequest {
+    model_path: Option<String>,
+    values: Vec<Vec<f64>>,
+    feature_names: Option<Vec<String>>,
+    level_names: Option<Vec<String>>,
+}
+
+async fn classify(State(s): State<MlState>, h: HeaderMap, axum::extract::Json(req): axum::extract::Json<ClassifyRequest>) -> Result<Response, Error> {
+    s.auth(&h)?;
+    let _permit = s.gate.try_acquire().map_err(|_| (StatusCode::TOO_MANY_REQUESTS, "Registry busy".into()))?;
+
+    // Determine model path: prefer real 8-channel G09 model if available, fallback to output_test
+    let default_model = if std::path::Path::new("mlops/output_g09/model.pkl").exists() {
+        "mlops/output_g09/model.pkl"
+    } else {
+        "mlops/output_test/model.pkl"
+    };
+    let model_str = req.model_path.as_deref().unwrap_or(default_model);
+    let model_path = std::path::Path::new(model_str);
+    if !model_path.exists() {
+        return Err((StatusCode::NOT_FOUND, format!("Model file not found: {model_str}. Please run retrain first.")));
+    }
+
+    let script = std::path::Path::new("mlops/infer.py").canonicalize().map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Infer script missing".into()))?;
+    
+    // Detect python interpreter based on platform/environment
+    let python = if cfg!(target_os = "windows") {
+        std::path::Path::new("mlops/.venv/Scripts/python.exe").canonicalize()
+            .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Python missing".into()))?
+            .to_string_lossy().into_owned()
+    } else {
+        // On Linux / Azure App Service, use system python3
+        "python3".into()
+    };
+
+    let py_payload = serde_json::json!({
+        "model_path": model_path.to_string_lossy(),
+        "values": req.values,
+        "feature_names": req.feature_names.unwrap_or_else(|| vec!["sensor_a".into(), "sensor_b".into()]),
+        "level_names": req.level_names.unwrap_or_else(|| vec!["Spesies (Arabika vs Robusta)".into(), "Proses (Green vs Roasted)".into(), "Profil Aroma (C01-C18)".into()]),
+    });
+
+    let mut child = tokio::process::Command::new(python)
+        .arg(script)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to spawn infer: {e}")))?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        use tokio::io::AsyncWriteExt;
+        let data = serde_json::to_vec(&py_payload).unwrap_or_default();
+        let _ = stdin.write_all(&data).await;
+        let _ = stdin.flush().await;
+    }
+
+    let out = child.wait_with_output().await.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Infer process failed: {e}")))?;
+    if !out.status.success() {
+        let err_msg = String::from_utf8_lossy(&out.stderr);
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("Inference error: {err_msg}")));
+    }
+
+    let res: Value = serde_json::from_slice(&out.stdout).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Invalid JSON output: {e}")))?;
+    Ok(response(res))
+}
+
+#[derive(Deserialize)]
 struct RetrainRequest { package_id: String }
 async fn retrain(State(s): State<MlState>, h: HeaderMap, axum::extract::Json(req): axum::extract::Json<RetrainRequest>) -> Result<Response, Error> {
     s.auth(&h)?;
@@ -55,7 +123,13 @@ async fn retrain(State(s): State<MlState>, h: HeaderMap, axum::extract::Json(req
     let (_, dir) = read(&s, &req.package_id).await?;
     let path = dir.join("package.json");
     let script = std::path::Path::new("mlops/retrain.py").canonicalize().map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Script missing".into()))?;
-    let python = std::path::Path::new("mlops/.venv/Scripts/python.exe").canonicalize().map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Python missing".into()))?;
+    let python = if cfg!(target_os = "windows") {
+        std::path::Path::new("mlops/.venv/Scripts/python.exe").canonicalize()
+            .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Python missing".into()))?
+            .to_string_lossy().into_owned()
+    } else {
+        "python3".into()
+    };
     
     let temp_dir = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
     let out = tokio::process::Command::new(python)
@@ -135,11 +209,57 @@ async fn compare(State(s):State<MlState>,h:HeaderMap,Query(q):Query<Pair>)->Resu
  let delta:Vec<_>=(0..3).map(|i|json!({"level":i+1,"accuracy_delta":b["metrics"]["test"][i]["accuracy"].as_f64().unwrap()-a["metrics"]["test"][i]["accuracy"].as_f64().unwrap(),"macro_f1_delta":b["metrics"]["test"][i]["macro_f1"].as_f64().unwrap()-a["metrics"]["test"][i]["macro_f1"].as_f64().unwrap()})).collect();
  Ok(response(json!({"comparable":true,"left":a,"right":b,"test_delta_right_minus_left":delta,"warning":"Same declared holdout only; external training provenance not independently verified. Synthetic results are not coffee performance."})))
 }
-async fn report(State(s):State<MlState>,h:HeaderMap,Path(id):Path<String>)->Result<Response,Error>{s.auth(&h)?;let (m,_)=read(&s,&id).await?;let mut lines=vec!["EVALUATED EXPERIMENT / NOT TELEMETRY CONFIDENCE".into()];
- for key in ["id","purpose","sample_count","group_count","splits","dataset_fingerprint","test_fingerprint","model_sha256","label_status","evaluation_trust"]{lines.push(format!("{key}: {}",m[key]));}
- lines.push(format!("Experiment: {}",m["experiment"]));
- if m["metrics"].is_null(){lines.push("Accuracy, macro-F1 and confusion matrices unavailable: no evaluated predictions supplied.".into());}else{for split in ["validation","test"]{for level in m["metrics"][split].as_array().unwrap(){lines.push(format!("{split} L{} accuracy={} macro-F1={} support={}",level["level"],level["accuracy"],level["macro_f1"],level["support"]));lines.push(format!("Labels (row truth / column prediction): {}",level["labels"]));for row in level["confusion_matrix"].as_array().unwrap(){lines.push(format!("{row}"));}}}}
- lines.push("synthetic_test means TEST ONLY; no coffee performance claim. Model is not OTA firmware.".into());
- let wrapped:Vec<String>=lines.into_iter().flat_map(|s|s.chars().collect::<Vec<_>>().chunks(95).map(|c|c.iter().collect()).collect::<Vec<_>>()).collect();
- Ok(([(header::CONTENT_TYPE,"application/pdf"),(header::CONTENT_DISPOSITION,"attachment; filename=experiment-report.pdf"),(header::CACHE_CONTROL,"no-store")],crate::report::experiment_pdf(&wrapped)).into_response())
+async fn report(State(s):State<MlState>,h:HeaderMap,Path(id):Path<String>)->Result<Response,Error>{
+    s.auth(&h)?;
+    let (m,_)=read(&s,&id).await?;
+    let mut lines=vec![
+        "=== EXPERIMENT EVALUATION REPORT ===".into(),
+        format!("Package ID: {}", m["id"].as_str().unwrap_or("")),
+        format!("Purpose: {}", m["purpose"].as_str().unwrap_or("")),
+        format!("Sample Count: {}", m["sample_count"]),
+        format!("Group Count: {}", m["group_count"]),
+        format!("Dataset Fingerprint: {}", m["dataset_fingerprint"].as_str().unwrap_or("")),
+        format!("Test Fingerprint: {}", m["test_fingerprint"].as_str().unwrap_or("")),
+        format!("Model SHA-256: {}", m["model_sha256"].as_str().unwrap_or("")),
+        "".into(),
+        "=== EXPERIMENT METADATA ===".into(),
+    ];
+    if let Some(exp) = m["experiment"].as_object() {
+        for (k, v) in exp {
+            if k != "predictions" {
+                lines.push(format!("{k}: {v}"));
+            }
+        }
+    }
+    lines.push("".into());
+    lines.push("=== METRICS & EVALUATION ===".into());
+    if m["metrics"].is_null() {
+        lines.push("No evaluated predictions supplied.".into());
+    } else {
+        for split in ["validation", "test"] {
+            if let Some(levels) = m["metrics"][split].as_array() {
+                lines.push(format!("--- Split: {split} ---"));
+                for level in levels {
+                    lines.push(format!(
+                        "Level {} | Acc: {:.4} | F1: {:.4} | Support: {}",
+                        level["level"],
+                        level["accuracy"].as_f64().unwrap_or(0.0),
+                        level["macro_f1"].as_f64().unwrap_or(0.0),
+                        level["support"]
+                    ));
+                }
+            }
+        }
+    }
+    lines.push("".into());
+    lines.push("Note: Synthetic test only. Not OTA firmware.".into());
+    
+    let wrapped:Vec<String>=lines.into_iter().flat_map(|s| {
+        if s.len() <= 85 {
+            vec![s]
+        } else {
+            s.chars().collect::<Vec<_>>().chunks(85).map(|c|c.iter().collect()).collect::<Vec<_>>()
+        }
+    }).collect();
+    Ok(([(header::CONTENT_TYPE,"application/pdf"),(header::CONTENT_DISPOSITION,"attachment; filename=experiment-report.pdf"),(header::CACHE_CONTROL,"no-store")],crate::report::experiment_pdf(&wrapped)).into_response())
 }
