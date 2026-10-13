@@ -19,12 +19,14 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# Install runtime SSL (dibutuhkan untuk konek ke Azure PostgreSQL & EMQX Mqtt)
-RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
+# Install runtime SSL dan Python3 + numpy + scikit-learn untuk modul MLOps
+RUN apt-get update && apt-get install -y ca-certificates libssl3 python3 python3-pip python3-numpy python3-sklearn && rm -rf /var/lib/apt/lists/*
 
 # Copy hasil build dari stage pertama
 COPY --from=builder /usr/src/app/target/release/backend-iot /app/backend-iot
 COPY --from=builder /usr/src/app/dashboard /app/dashboard
+COPY mlops /app/mlops
+COPY migrations /app/migrations
 
 # Set environment
 ENV PORT=80
