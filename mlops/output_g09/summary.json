@@ -1,0 +1,223 @@
+{
+  "dataset_fingerprint": "ec9bb0a0c894e25e3e5ee70a02714c7dec6dd4305e09e1bbee53ad08a4bc5107",
+  "evaluation_trust": "Metrics recomputed from supplied predictions, not proof of model execution or external training isolation",
+  "experiment": {
+    "dataset_fingerprint": "ec9bb0a0c894e25e3e5ee70a02714c7dec6dd4305e09e1bbee53ad08a4bc5107",
+    "engine": "python_lda",
+    "evaluation_protocol": "heldout_group_v1",
+    "model_sha256": "282b4a1f3eb316ef6e594112dd10cebadf4307dcfd527887854cb56686b98c26",
+    "name": "G09_LDA_V2",
+    "preprocessing": "Per-window mean/std; StandardScaler fit on train only; fixed defaults, no test tuning; independent L1/L2/L3 classifiers",
+    "provenance": "Local sklearn 1.9.1; seed 1909; synthetic_test; no remote Edge Impulse execution",
+    "test_fingerprint": "ce9a9d7788e4025f3b75d32a17f09deeab0345557a31bfceeb5323c0abf3fe2d"
+  },
+  "group_count": 18,
+  "label_status": "uploader_attestation_not_independently_verified",
+  "metrics": {
+    "test": [
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "labels": [
+          "Arabika",
+          "Robusta"
+        ],
+        "level": 1,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "labels": [
+          "Honey",
+          "Natural",
+          "Roasted",
+          "Washed"
+        ],
+        "level": 2,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "labels": [
+          "C01_Floral",
+          "C02_Fruity",
+          "C03_Nutty",
+          "C04_Caramel"
+        ],
+        "level": 3,
+        "macro_f1": 1.0,
+        "support": 12
+      }
+    ],
+    "validation": [
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "labels": [
+          "Arabika",
+          "Robusta"
+        ],
+        "level": 1,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "labels": [
+          "Honey",
+          "Natural",
+          "Roasted",
+          "Washed"
+        ],
+        "level": 2,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "labels": [
+          "C01_Floral",
+          "C02_Fruity",
+          "C03_Nutty",
+          "C04_Caramel"
+        ],
+        "level": 3,
+        "macro_f1": 1.0,
+        "support": 12
+      }
+    ]
+  },
+  "model_sha256": "282b4a1f3eb316ef6e594112dd10cebadf4307dcfd527887854cb56686b98c26",
+  "purpose": "synthetic_test",
+  "sample_count": 72,
+  "splits": {
+    "test": 12,
+    "train": 48,
+    "validation": 12
+  },
+  "test_fingerprint": "ce9a9d7788e4025f3b75d32a17f09deeab0345557a31bfceeb5323c0abf3fe2d"
+}

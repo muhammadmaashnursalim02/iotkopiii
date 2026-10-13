@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Coffee Lab - E-Nose Monitor</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="js/main.js" defer></script>
-  <script src="js/mlops.js" defer></script>
+  <link rel="stylesheet" href="css/style.css?v=mlops-scroll-fix-2">
+  <script src="js/main.js?v=adc-voltage-fix-1" defer></script>
+  <script src="js/mlops.js?v=mlops-fix-1" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Lewati ke konten</a>
@@ -33,13 +33,9 @@
           <span >STATUS:</span>
           <span id="connectionStatus" role="status" >Belum terhubung</span>
         </div>
-        <label class="theme-switch" aria-label="Ganti Tema">
-          <input type="checkbox" id="themeToggle">
-          <span class="slider">
-            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          </span>
-        </label>
+        <button type="button" id="themeToggle" class="theme-toggle" aria-label="Tema gelap. Aktifkan tema terang" title="Aktifkan tema terang">
+          <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/></svg>
+        </button>
       </div>
     </div>
   </header>
@@ -48,8 +44,9 @@
     <div class="toolbar" aria-label="Sumber data">
       <div class="toolbar-controls">
         <label>Target
-          <select id="deviceSelect">
-            <option value="ESP32_G09">ESP32_G09 (Data Gabungan)</option>
+          <select id="deviceSelect" aria-label="Pilih device telemetri">
+            <option value="ESP32_E_NOSE_01">ESP32_E_NOSE_01 (E-Nose)</option>
+            <option value="DAQ01">DAQ01 (Data lama)</option>
           </select>
         </label>
         <label>Mode
@@ -169,34 +166,34 @@
     </div>
 
     <section id="otaPanel" role="tabpanel" aria-labelledby="otaTab" hidden>
-      <div class="panel" class="ota-container">
+      <div class="panel ota-container">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">OTA / SERVER ARTIFACT</p>
-            <h2>Firmware ESP32_G09</h2>
+            <p class="eyebrow">OVER-THE-AIR (OTA) / SERVER ARTIFACT</p>
+            <h2>Kelola Firmware ESP32_G09</h2>
           </div>
         </div>
-        <p class="muted" >Unggah image aplikasi ESP32 lengkap, bukan berkas model ML mentah. Penyimpanan server saja; tidak mem-flash perangkat. Kompatibilitas dan tanda tangan belum terbukti.</p>
-        
+        <p class="muted">Unggah berkas firmware aplikasi ESP32 lengkap (bukan hanya model ML). Proses ini hanya menyimpan berkas ke server, **TIDAK** otomatis melakukan flash ke perangkat. Kompatibilitas dan integritas (tanda tangan) firmware harus diverifikasi secara manual.</p>
+
         <form id="otaForm" novalidate>
           <div class="form-group">
             <label for="fwVersion">Versi Firmware
-              <input id="fwVersion" type="text" placeholder="ESP32_G09.bin" maxlength="64" >
+              <input id="fwVersion" type="text" placeholder="Contoh: v2.0.1_svm" maxlength="64" >
             </label>
             <label for="fwFile">Berkas Firmware (.bin)
               <input id="fwFile" type="file" accept=".bin" >
             </label>
           </div>
-          
-          <label for="otaToken">Token admin (memori tab saja)
+
+          <label for="otaToken">Token Admin (Hanya di memori tab ini)
             <input id="otaToken" type="password" autocomplete="off" spellcheck="false" maxlength="512">
           </label>
-          <p class="footnote">Masukkan token server lewat koneksi HTTPS atau loopback lokal. Token tidak disimpan ke localStorage. Upload ditolak bila server belum dikonfigurasi.</p>
+          <p class="footnote">Masukkan token server melalui koneksi HTTPS atau loopback lokal (127.0.0.1). Token tidak akan disimpan di localStorage. Proses unggah akan ditolak jika konfigurasi server belum lengkap.</p>
           <div class="form-actions">
-            <button class="primary" type="submit" id="inspectFirmware">Validasi Lokal</button>
-            <button type="button" id="deployFirmware" disabled>Upload to server</button>
+            <button class="primary" type="submit" id="inspectFirmware">Validasi Lokal Firmware</button>
+            <button type="button" id="deployFirmware" disabled>Unggah ke Server</button>
           </div>
-          <p id="otaFeedback" role="status" aria-live="polite" ></p>
+          <p id="otaFeedback" role="status" aria-live="polite"></p>
           <dl id="fileInspection" hidden></dl>
         </form>
 
@@ -204,22 +201,22 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">STATUS ARMADA</p>
-              <h3 >ESP32_G09 Target</h3>
+              <h3>Perangkat Target ESP32_G09</h3>
             </div>
           </div>
-          <table class="data-table" >
+          <table class="data-table">
             <thead>
               <tr>
-                <th >Perangkat</th>
-                <th >Versi Saat Ini</th>
-                <th >Status</th>
+                <th>Perangkat</th>
+                <th>Versi Saat Ini</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td >ESP32_G09</td>
-                <td >Tidak diketahui</td>
-                <td >Hardware belum dikonfirmasi</td>
+                <td>ESP32_G09</td>
+                <td>Tidak diketahui</td>
+                <td>Hardware belum dikonfirmasi</td>
               </tr>
             </tbody>
           </table>
@@ -233,12 +230,12 @@
         <h2>Dataset / Experiments</h2>
         <p id="mlNotice" class="notice">Class A menggabungkan dataset mentah berlabel dari 18 kelompok, bukan 18 baris. Class C menerima dataset + model V1 + evaluasi; retrain lewat Edge Impulse atau Python SVM/LDA. pred_level dan confidence bukan ground truth. Telemetri Azure tanpa label terverifikasi ditolak untuk training.</p>
         <div class="ml-grid">
-          <section><h3>1 / Import dan validasi</h3>
+          <section><h3>1 / Connect Registry + Import</h3>
             <label for="mlToken">Token MLOPS admin | memori tab saja<input id="mlToken" type="password" autocomplete="off" spellcheck="false" maxlength="512"></label>
             <label for="mlFile">Package JSON | maksimal 32 MiB<input id="mlFile" type="file" accept=".json,application/json"></label>
-            <p class="footnote">JSON envelope, tanpa ekstraksi arsip. Model disimpan opaque, tidak dijalankan. Token hanya lewat HTTPS atau loopback.</p>
-            <div class="actions"><button id="mlValidate">Validasi tanpa simpan</button><button id="mlUpload">Import package</button><button id="mlRefresh">Baca registry</button></div>
-            <p id="mlStatus" role="status" aria-live="polite">Registry belum dibaca. Tidak ada skor V1 yang diasumsikan.</p>
+            <p class="footnote">Alur pakai: masukkan token dari <code>.env</code> key <code>MLOPS_ADMIN_TOKEN</code>, klik Connect / Baca registry, lalu validasi atau import package JSON. Token tidak disimpan browser.</p>
+            <div class="actions"><button id="mlRefresh" class="primary">Connect / Baca registry</button><button id="mlValidate">Validasi tanpa simpan</button><button id="mlUpload">Import package</button></div>
+            <p id="mlStatus" role="status" aria-live="polite">Masukkan token MLOPS, lalu klik Connect / Baca registry.</p>
           </section>
           <section><h3>2 / Dua jalur retraining</h3>
             <p><b>Edge Impulse:</b> ekspor CSV time-series + info.labels per level. Upload/train remote perlu otorisasi terpisah; belum diverifikasi.</p>
@@ -255,6 +252,56 @@
         <h3>4 / Perbandingan V1 / V2</h3>
         <div class="actions"><label>Baseline V1<select id="mlLeft"><option value="">Pilih paket</option></select></label><label>Kandidat V2<select id="mlRight"><option value="">Pilih paket</option></select></label><button id="mlCompare">Bandingkan fixed test</button></div>
         <pre id="mlComparison" class="ml-output">Belum dibandingkan. Dataset/test fingerprint dan protokol harus sama; metrik hilang tidak diganti nol.</pre>
+
+        <h3>5 / Sample Classification Playground (G09 Hierarchical)</h3>
+        <p class="footnote">Uji inferensi model bertingkat (Level 1: Spesies, Level 2: Proses, Level 3: Profil Aroma) menggunakan model ML aktif (SVM/LDA). Sesuai standar metrologi CBP G09 (prediksi menampilkan label + skor confidence).</p>
+        <div class="playground-box">
+          <div class="playground-inputs">
+            <div class="input-option">
+              <h4>Opsi A: Ambil dari Database Telemetri</h4>
+              <label for="pgDbSelect">Pilih riwayat pengukuran terbaru:
+                <select id="pgDbSelect">
+                  <option value="">Memuat data database...</option>
+                </select>
+              </label>
+              <button id="pgBtnDb" class="secondary" type="button">Muat Sampel DB</button>
+            </div>
+            <div class="input-divider">ATAU</div>
+            <div class="input-option">
+              <h4>Opsi B: Upload Berkas CSV Mentah</h4>
+              <label for="pgCsvFile">Pilih 1 berkas CSV akuisisi sensor (8 kanal MOS):
+                <input id="pgCsvFile" type="file" accept=".csv,text/csv">
+              </label>
+              <button id="pgBtnClearCsv" class="secondary" type="button" style="display: none;">Hapus CSV</button>
+              <p class="footnote" id="pgCsvInfo">Format: kolom baris waktu & sensor S1..S8.</p>
+              </div>
+          </div>
+          <div class="actions">
+            <button id="pgBtnClassify" class="primary" type="button">Jalankan Klasifikasi Bertingkat</button>
+          </div>
+          <div id="pgResults" class="pg-results" style="display: none;">
+            <h4>Hasil Inferensi Sampel:</h4>
+            <div id="pgProcessedInput" class="pg-processed-input" style="font-size: 0.85em; color: var(--muted-foreground); margin-bottom: 1rem; background: var(--accent); padding: 0.5rem; border-radius: 4px;"></div>
+            <div class="pg-cards-grid">
+              <div class="pg-card">
+                <span class="pg-level-title">LEVEL 1: SPESIES</span>
+                <span id="pgL1Pred" class="pg-prediction">-</span>
+                <span id="pgL1Conf" class="pg-confidence">Confidence: -%</span>
+              </div>
+              <div class="pg-card">
+                <span class="pg-level-title">LEVEL 2: PROSES</span>
+                <span id="pgL2Pred" class="pg-prediction">-</span>
+                <span id="pgL2Conf" class="pg-confidence">Confidence: -%</span>
+              </div>
+              <div class="pg-card">
+                <span class="pg-level-title">LEVEL 3: PROFIL AROMA</span>
+                <span id="pgL3Pred" class="pg-prediction">-</span>
+                <span id="pgL3Conf" class="pg-confidence">Confidence: -%</span>
+              </div>
+            </div>
+            <p id="pgStatusNote" class="footnote" style="margin-top: 10px;"></p>
+          </div>
+        </div>
       </div>
     </section>
     <footer>

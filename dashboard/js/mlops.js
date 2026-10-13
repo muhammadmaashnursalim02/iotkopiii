@@ -50,5 +50,141 @@
   $(button).onclick=()=>action(async()=>{const id=$('mlSelect').value;if(!id)throw new Error('Pilih paket.');const blob=await(await api(`/packages/${encodeURIComponent(id)}/${suffix}`)).blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);$('mlStatus').textContent=`Unduh ${name} selesai; ${id}.`;});
  }
  $('mlCompare').onclick=()=>action(async()=>{const left=$('mlLeft').value,right=$('mlRight').value;$('mlComparison').textContent='Belum ada hasil perbandingan baru.';if(!left||!right)throw new Error('Pilih baseline dan kandidat.');try{const data=await(await api('/compare?'+new URLSearchParams({left,right}))).json();$('mlComparison').textContent=JSON.stringify(data,null,2);$('mlStatus').textContent='Comparable pada fixed test yang sama; delta kandidat minus baseline. Bukan bukti generalisasi atau validasi remote.';}catch(e){$('mlComparison').textContent=e.message;throw e;}});
+
+ // --- 5 / Classification Playground Logic ---
+ let dbTelemetrySamples = [];
+ async function loadDbTelemetry() {
+   const select = $('pgDbSelect');
+   if (!select) return;
+   try {
+     const res = await fetch('/api/dashboard?limit=25');
+     if (!res.ok) return;
+     const data = await res.json();
+     dbTelemetrySamples = data.rows || []; // FIXED: use rows, not telemetry
+     select.replaceChildren(new Option('Pilih rekaman telemetri...', ''));
+     dbTelemetrySamples.forEach((row, idx) => {
+       const timeStr = row.created_at ? new Date(row.created_at).toLocaleTimeString() : `#${idx}`; // FIXED: use created_at
+       const dev = row.device_id || 'ESP32';
+       const coffee = row.coffee_id || 'Unknown';
+       select.add(new Option(`[${timeStr}] ${dev} - ${coffee} (ID: ${row.id || idx})`, idx));
+     });
+   } catch(e) { console.warn('Could not load telemetry for playground:', e); }
+ }
+ loadDbTelemetry();
+
+ // Add Refresh button listener
+ if ($('pgBtnDb')) $('pgBtnDb').onclick = () => loadDbTelemetry();
+
+ function parseCsv(text) {
+   const lines = text.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+   if (lines.length < 2) throw new Error('File CSV harus memiliki header dan minimal 2 baris data.');
+   const rows = [];
+   for (let i = 1; i < lines.length; i++) {
+     const cols = lines[i].split(',').map(c => parseFloat(c.trim()));
+     if (cols.some(isNaN)) continue;
+     rows.push(cols);
+   }
+   if (rows.length < 2) throw new Error('Data numerik dalam CSV tidak cukup untuk ekstraksi fitur.');
+   return rows;
+ }
+
+ if ($('pgBtnClassify')) {
+   // Bind input source mutually exclusive switches immediately
+   if ($('pgCsvFile')) {
+     $('pgCsvFile').onchange = () => {
+       if ($('pgCsvFile').files.length > 0) {
+         $('pgDbSelect').value = '';
+         if ($('pgBtnClearCsv')) $('pgBtnClearCsv').style.display = 'inline-block';
+       }
+     };
+   }
+   if ($('pgDbSelect')) {
+     $('pgDbSelect').onchange = () => {
+       if ($('pgDbSelect').value !== '') {
+         $('pgCsvFile').value = '';
+         if ($('pgBtnClearCsv')) $('pgBtnClearCsv').style.display = 'none';
+       }
+     };
+   }
+   if ($('pgBtnClearCsv')) {
+     $('pgBtnClearCsv').onclick = () => {
+       $('pgCsvFile').value = '';
+       $('pgBtnClearCsv').style.display = 'none';
+     };
+   }
+
+   $('pgBtnClassify').onclick = async () => {
+     const statusNote = $('pgStatusNote');
+     const resBox = $('pgResults');
+     try {
+       statusNote.textContent = 'Memproses inferensi...';
+       resBox.style.display = 'block';
+
+       let sensorValues = [];
+       const csvFile = $('pgCsvFile').files[0];
+       const dbIdx = $('pgDbSelect').value;
+
+       if (csvFile) {
+         statusNote.textContent = `Memproses inferensi dari [Berkas CSV: ${csvFile.name}]...`;
+         const text = await csvFile.text();
+         const rows = parseCsv(text);
+         // CSV usually has timestamp in col 0, so slice 1:9 for S1..S8
+         sensorValues = rows.map(r => r.length > 8 ? r.slice(1, 9) : r); 
+       } else if (dbIdx !== '') {
+         const sample = dbTelemetrySamples[parseInt(dbIdx, 10)];
+         if (!sample) throw new Error('Pilih sampel valid dari dropdown.');
+         statusNote.textContent = `Memproses inferensi dari [Database Telemetri: ${sample.coffee_id || 'C09'} (ID: ${sample.id || dbIdx})]...`;
+         // Real 8-channel values from DB
+         const row = [
+           sample.s1_mq3||0, sample.s2_mq6||0, sample.s3_mq7||0, sample.s4_mq135||0,
+           sample.s5_tgs2600||0, sample.s6_tgs2602||0, sample.s7_tgs2611||0, sample.s8_tgs2620||0
+         ];
+         // Create synthetic series (5 points) around static DB value for mean/std extraction
+         sensorValues = [0.98, 0.99, 1.0, 1.01, 1.02].map(m => row.map(v => v * m));
+       } else {
+         throw new Error('Pilih salah satu: Muat dari Database (Opsi A) atau Pilih berkas CSV (Opsi B).');
+       }
+
+       // Display processed input mean
+       const means = sensorValues[0].map((_, i) => sensorValues.reduce((acc, row) => acc + row[i], 0) / sensorValues.length);
+       if ($('pgProcessedInput')) {
+         $('pgProcessedInput').textContent = `Input Rata-rata 8 Kanal MOS (S1-S8): ${means.map(m => m.toFixed(2)).join(', ')}`;
+       }
+
+       // Feature names match training (S1..S8)
+       const feature_names = ["s1_mq3","s2_mq6","s3_mq7","s4_mq135","s5_tgs2600","s6_tgs2602","s7_tgs2611","s8_tgs2620"];
+
+       const resp = await api('/classify', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+           values: sensorValues,
+           feature_names: feature_names,
+           level_names: ['Spesies', 'Proses', 'Profil Aroma']
+         })
+       });
+       const result = await resp.json();
+       if (!result.ok) throw new Error(result.error || 'Inferensi gagal.');
+
+       const l1 = result.levels[0], l2 = result.levels[1], l3 = result.levels[2];
+       if (l1) {
+         $('pgL1Pred').textContent = l1.prediction;
+         $('pgL1Conf').textContent = `Confidence: ${(l1.confidence * 100).toFixed(1)}%`;
+       }
+       if (l2) {
+         $('pgL2Pred').textContent = l2.prediction;
+         $('pgL2Conf').textContent = `Confidence: ${(l2.confidence * 100).toFixed(1)}%`;
+       }
+       if (l3) {
+         $('pgL3Pred').textContent = l3.prediction;
+         $('pgL3Conf').textContent = `Confidence: ${(l3.confidence * 100).toFixed(1)}%`;
+       }
+       statusNote.textContent = 'Inferensi berhasil menggunakan model machine learning (SVM/LDA hierarchical).';
+     } catch (err) {
+       statusNote.textContent = 'Error: ' + err.message;
+     }
+   };
+ }
+
  window.addEventListener('pagehide',()=>{$('mlToken').value='';});
 })();
