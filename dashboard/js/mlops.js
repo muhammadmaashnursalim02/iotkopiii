@@ -3,9 +3,7 @@
  const $=id=>document.getElementById(id);let packages=[],busy=false;
  const secure=()=>location.protocol==='https:'||['127.0.0.1','localhost','[::1]'].includes(location.hostname);
  async function api(path,options={}) {
-  if(!secure())throw new Error('Gunakan HTTPS atau loopback lokal, bukan file://.');
-  if(!$('mlToken').value)throw new Error('Token MLOPS admin diperlukan.');
-  const response=await fetch('/api/ml'+path,{...options,headers:{...options.headers,Authorization:`Bearer ${$('mlToken').value}`},cache:'no-store',signal:AbortSignal.timeout(60000)});
+  const response=await fetch('/api/ml'+path,{...options,headers:{...options.headers},cache:'no-store',signal:AbortSignal.timeout(60000)});
   if(!response.ok)throw new Error(`HTTP ${response.status}: ${await response.text()}`);
   return response;
  }

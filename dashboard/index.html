@@ -11,42 +11,48 @@
 </head>
 <body>
   <a class="skip" href="#main">Lewati ke konten</a>
-  
-  <header class="app-header">
-    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-      <div style="display: flex; align-items: center; gap: 24px;">
-        <a class="brand" href="index.html">
-          <span class="brand-mark" aria-hidden="true">CL</span>
-          <div class="brand-text">
-            <span class="brand-title">COFFEE LAB</span>
-            <small class="brand-subtitle">E-NOSE WORKSPACE</small>
-          </div>
-        </a>
-        <nav class="tabs" role="tablist" aria-label="Workspace">
-          <button id="monitorTab" role="tab" aria-selected="true" aria-controls="monitorPanel">Monitor</button>
-          <button id="otaTab" role="tab" aria-selected="false" aria-controls="otaPanel" tabindex="-1">OTA & Admin</button>
-          <button id="mlTab" role="tab" aria-selected="false" aria-controls="mlPanel" tabindex="-1">Dataset / Experiments</button>
-        </nav>
-      </div>
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <div class="status-bar" >
-          <span >STATUS:</span>
-          <span id="connectionStatus" role="status" >Belum terhubung</span>
-        </div>
-        <button type="button" id="themeToggle" class="theme-toggle" aria-label="Tema gelap. Aktifkan tema terang" title="Aktifkan tema terang">
-          <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/></svg>
-        </button>
+
+  <!-- Sidebar Modern -->
+  <aside class="app-sidebar" aria-label="Menu Navigasi">
+    <div class="sidebar-brand">
+      <span class="brand-mark" aria-hidden="true">CL</span>
+      <div class="brand-text">
+        <span class="brand-title">COFFEE LAB</span>
+        <small class="brand-subtitle">E-NOSE G09</small>
       </div>
     </div>
-  </header>
+    <nav class="sidebar-nav" role="tablist" aria-label="Workspace">
+      <button id="monitorTab" role="tab" aria-selected="true" aria-controls="monitorPanel">Monitor Telemetri</button>
+      <button id="otaTab" role="tab" aria-selected="false" aria-controls="otaPanel" tabindex="-1">OTA & Firmware</button>
+      <button id="mlTab" role="tab" aria-selected="false" aria-controls="mlPanel" tabindex="-1">Dataset / MLOps</button>
+    </nav>
+  </aside>
+
+  <div class="main-content">
+    <header class="app-header">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <div class="header-left">
+          <h2>Sistem Monitoring Kualitas Kopi E-Nose & MLOps</h2>
+          <div class="status-bar" >
+            <span>Status:</span>
+            <span id="connectionStatus" role="status">Belum terhubung</span>
+          </div>
+        </div>
+          <button type="button" id="themeToggle" class="theme-toggle" aria-label="Tema gelap. Aktifkan tema terang" title="Aktifkan tema terang">
+            <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
 
   <main id="main">
     <div class="toolbar" aria-label="Sumber data">
       <div class="toolbar-controls">
         <label>Target
           <select id="deviceSelect" aria-label="Pilih device telemetri">
-            <option value="ESP32_E_NOSE_01">ESP32_E_NOSE_01 (E-Nose)</option>
-            <option value="DAQ01">DAQ01 (Data lama)</option>
+            <option value="">Semua Device (Terbaru)</option>
+            <option value="DAQ01" selected>DAQ01 (Data Aktif ESP32)</option>
+            <option value="ESP32_E_NOSE_01">ESP32_E_NOSE_01</option>
           </select>
         </label>
         <label>Mode
@@ -185,8 +191,8 @@
             </label>
           </div>
 
-          <label for="otaToken">Token Admin (Hanya di memori tab ini)
-            <input id="otaToken" type="password" autocomplete="off" spellcheck="false" maxlength="512">
+          <label for="otaToken" style="display:none;">Token Admin (Non-aktif / Bebas Akses)
+            <input id="otaToken" type="password" autocomplete="off" spellcheck="false" maxlength="512" value="public-access-disabled-token">
           </label>
           <p class="footnote">Masukkan token server melalui koneksi HTTPS atau loopback lokal (127.0.0.1). Token tidak akan disimpan di localStorage. Proses unggah akan ditolak jika konfigurasi server belum lengkap.</p>
           <div class="form-actions">
@@ -230,18 +236,20 @@
         <h2>Dataset / Experiments</h2>
         <p id="mlNotice" class="notice">Class A menggabungkan dataset mentah berlabel dari 18 kelompok, bukan 18 baris. Class C menerima dataset + model V1 + evaluasi; retrain lewat Edge Impulse atau Python SVM/LDA. pred_level dan confidence bukan ground truth. Telemetri Azure tanpa label terverifikasi ditolak untuk training.</p>
         <div class="ml-grid">
-          <section><h3>1 / Connect Registry + Import</h3>
-            <label for="mlToken">Token MLOPS admin | memori tab saja<input id="mlToken" type="password" autocomplete="off" spellcheck="false" maxlength="512"></label>
-            <label for="mlFile">Package JSON | maksimal 32 MiB<input id="mlFile" type="file" accept=".json,application/json"></label>
-            <p class="footnote">Alur pakai: masukkan token dari <code>.env</code> key <code>MLOPS_ADMIN_TOKEN</code>, klik Connect / Baca registry, lalu validasi atau import package JSON. Token tidak disimpan browser.</p>
-            <div class="actions"><button id="mlRefresh" class="primary">Connect / Baca registry</button><button id="mlValidate">Validasi tanpa simpan</button><button id="mlUpload">Import package</button></div>
-            <p id="mlStatus" role="status" aria-live="polite">Masukkan token MLOPS, lalu klik Connect / Baca registry.</p>
+          <section class="panel-sub"><h3>1 / Registry & Import</h3>
+            <label for="mlToken" style="display:none;">Token<input id="mlToken" type="password" autocomplete="off" spellcheck="false" maxlength="512" value="public-access-disabled-token"></label>
+            <label for="mlFile">Berkas Paket JSON (Maks 32 MiB)<input id="mlFile" type="file" accept=".json,application/json"></label>
+            <div class="actions"><button id="mlRefresh" class="primary">Connect / Baca</button><button id="mlValidate">Validasi</button><button id="mlUpload">Import</button></div>
+            <p id="mlStatus" role="status" aria-live="polite">Masukkan token, klik Connect.</p>
           </section>
-          <section><h3>2 / Dua jalur retraining</h3>
-            <p><b>Edge Impulse:</b> ekspor CSV time-series + info.labels per level. Upload/train remote perlu otorisasi terpisah; belum diverifikasi.</p>
-            <p><b>Python:</b> CLI venv menjalankan SVM/LDA, scaler fit train saja, evaluasi L1/L2/L3 pada split tetap. Import package.json hasil training di sini.</p>
-            <div class="actions"><label for="mlRetrainTarget">Pilih paket untuk retraining<select id="mlRetrainTarget"><option value="">Belum ada paket</option></select></label><button id="mlRetrain">Retrain (Python SVM)</button></div>
-            <p class="footnote">CLI, kontrak, dan template: <a href="MLOPS.md">Panduan MLOps lokal</a>. Tidak ada web shell. Model sklearn .pkl bukan firmware OTA .bin; konversi/kompilasi MCU tetap gerbang terpisah.</p>
+          <section class="panel-sub"><h3>2 / Retraining (Python)</h3>
+            <p class="muted text-sm">Gunakan CLI venv lokal untuk eksekusi SVM/LDA. Model disimpan lokal.</p>
+            <div class="actions">
+              <label for="mlRetrainTarget">Target Paket
+                <select id="mlRetrainTarget"><option value="">Belum ada paket</option></select>
+              </label>
+              <button id="mlRetrain">Retrain SVM</button>
+            </div>
           </section>
         </div>
         <h3>3 / Registry dan evaluasi</h3>
@@ -311,5 +319,6 @@
   </main>
   
   <noscript>Aktifkan JavaScript untuk interaksi dashboard.</noscript>
+  </div> <!-- /.main-content -->
 </body>
 </html>

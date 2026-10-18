@@ -2,16 +2,26 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  // Theme Toggle (Switch)
+  // One icon represents the current theme; click switches it.
   const themeToggle = $('themeToggle');
   if (themeToggle) {
-    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-    if (prefersLight) {
-      document.documentElement.classList.add('light');
-      themeToggle.checked = true;
-    }
-    themeToggle.addEventListener('change', () => {
-      document.documentElement.classList.toggle('light', themeToggle.checked);
+    const icon = themeToggle.querySelector('svg');
+    const moon = '<path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/>';
+    const sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>';
+    let savedTheme;
+    try { savedTheme = localStorage.getItem('coffee-lab-theme'); } catch (_) { /* Storage may be blocked. */ }
+    const applyTheme = light => {
+      document.documentElement.classList.toggle('light', light);
+      icon.innerHTML = light ? sun : moon;
+      const action = light ? 'Aktifkan tema gelap' : 'Aktifkan tema terang';
+      themeToggle.setAttribute('aria-label', `Tema ${light ? 'terang' : 'gelap'}. ${action}`);
+      themeToggle.title = action;
+    };
+    applyTheme(savedTheme === 'light' || (savedTheme !== 'dark' && window.matchMedia('(prefers-color-scheme: light)').matches));
+    themeToggle.addEventListener('click', () => {
+      const light = !document.documentElement.classList.contains('light');
+      applyTheme(light);
+      try { localStorage.setItem('coffee-lab-theme', light ? 'light' : 'dark'); } catch (_) { /* Toggle still works. */ }
     });
   }
 
@@ -19,7 +29,7 @@
     ['MQ-3', '#dfb483'], ['MQ-6', '#c1ca9b'], ['MQ-7', '#df9980'], ['MQ-135', '#8ab9aa'],
     ['TGS2600', '#c7bbac'], ['TGS2602', '#a6b5d2'], ['TGS2611', '#ba9ab2'], ['TGS2620', '#d0bd6f']
   ];
-  const devices = ['DAQ01', 'DAQ02', 'DAQ03'];
+  const devices = Array.from($('deviceSelect').options).map(option => option.value);
   let rows = [];
   let inspectionToken = 0;
   let generation = 0, pollTimer, activeRequest = null;
@@ -48,7 +58,8 @@
         id:row.id, created_at:row.created_at, device:row.device_id, coffee_id:row.coffee_id,
         t:Number.isFinite(Date.parse(row.created_at)) && Number.isFinite(start) ? (Date.parse(row.created_at)-start)/1000 : 0,
         temperature:row.temperature, humidity:row.humidity,
-        sensors:sensorFields.map(key => row[key]),
+        // Use sensor values as-is (already in volts from backend); fallback ADC conversion only when value > 100
+        sensors:sensorFields.map(key => Number.isFinite(row[key]) ? (row[key] > 100 ? row[key] * 3.3 / 4095 : row[key]) : null),
         predictions:[1,2,3].map(i => row[`pred_level_${i}`]),
         confidence:[1,2,3].map(i => Number.isFinite(row[`conf_level_${i}`]) ? Math.round(row[`conf_level_${i}`]*1000)/10 : null)
       }));
@@ -64,7 +75,7 @@
       activeRequest = null;
       if ($('dataMode').value === 'live') {
         const current = generation;
-        pollTimer = setTimeout(() => pollLive(current), token === current ? 5000 : 0);
+        pollTimer = setTimeout(() => pollLive(current), token === current ? 1500 : 0);
       }
     }
   }
@@ -135,7 +146,8 @@
       ? 'DEMO — Semua nilai, kurva, kelas, dan confidence adalah simulasi lokal. Sesi tetap 0–300 detik; bukan stream perangkat.'
       : 'Live membaca riwayat PostgreSQL setiap 5 detik; bukan bukti ESP32 online. Data lama tetap riwayat, nilai kosong berarti tidak tersedia. Kegagalan API tidak memakai simulasi.';
     $('chartDevice').textContent = $('deviceSelect').value;
-    $('lastUpdate').textContent = demo ? 'Sesi Demo tetap · interval 5 detik' : latest ? `Data terakhir: ${latest.created_at ?? 'timestamp tidak tersedia'} · ID ${latest.id}` : 'Belum ada data diterima';
+    const lastDate = latest && latest.created_at ? new Date(latest.created_at).toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false }) : 'timestamp tidak tersedia';
+    $('lastUpdate').textContent = demo ? 'Sesi Demo tetap · interval 5 detik' : latest ? `Data terakhir: ${lastDate} WIB · ID ${latest.id}` : 'Belum ada data diterima';
     $('tempVal').textContent = latest ? number(latest.temperature, 1) : '—';
     $('humVal').textContent = latest ? number(latest.humidity, 1) : '—';
     sensors.forEach((_, i) => { $(`sensorValue${i}`).textContent = latest ? number(latest.sensors[i], 3) + ' V' : '— V'; });
@@ -145,7 +157,8 @@
     $('reportLink').setAttribute('aria-disabled', String(demo || location.protocol === 'file:'));
     $('reportLink').href = `/api/report?${new URLSearchParams({device_id:$('deviceSelect').value,limit:'200'})}`;
     $('exportStatus').textContent = '';
-    $('logTableBody').innerHTML = rows.length ? rows.map(row => `<tr><td>${escape(row.id)}</td><td>${escape(row.created_at)}</td><td>${escape(row.device ?? $('deviceSelect').value)}</td><td>${escape(row.coffee_id)}</td><td>${row.t}</td><td>${number(row.temperature,1)}</td><td>${number(row.humidity,1)}</td>${row.sensors.map(v => `<td>${number(v,3)}</td>`).join('')}${row.predictions.map((v, i) => `<td>${escape(v)} / ${percent(row.confidence[i])}</td>`).join('')}</tr>`).join('') : '<tr><td colspan="18" class="empty-row">Belum ada pembacaan. Data Live tidak disimulasikan.</td></tr>';
+    const fmtTs = (ts) => { try { return new Date(ts).toLocaleString('id-ID', { timeZone:'Asia/Jakarta', hour12:false, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' }); } catch { return ts; } };
+    $('logTableBody').innerHTML = rows.length ? rows.map(row => `<tr><td>${escape(row.id)}</td><td>${fmtTs(row.created_at)}</td><td>${escape(row.device ?? $('deviceSelect').value)}</td><td>${escape(row.coffee_id)}</td><td>${row.t}</td><td>${number(row.temperature,1)}</td><td>${number(row.humidity,1)}</td>${row.sensors.map(v => `<td>${number(v,3)}</td>`).join('')}${row.predictions.map((v, i) => `<td>${escape(v)} / ${percent(row.confidence[i])}</td>`).join('')}</tr>`).join('') : '<tr><td colspan="18" class="empty-row">Belum ada pembacaan. Data Live tidak disimulasikan.</td></tr>';
     renderPredictions(latest);
     renderChart();
   }
@@ -286,9 +299,9 @@
   let uploading = false;
   const uploadEnabled = () => {
     const secure = location.protocol === 'https:' || ['127.0.0.1','localhost','[::1]'].includes(location.hostname);
-    $('deployFirmware').disabled = uploading || !secure || !$('otaToken').value || !$('fwFile').files[0] || !$('fwVersion').value;
-  };
-  ['otaToken','fwVersion','fwFile'].forEach(id => $(id).addEventListener('input', uploadEnabled));
+    $('deployFirmware').disabled = uploading || !$('fwFile').files[0] || !$('fwVersion').value;
+  }
+  ['fwVersion','fwFile'].forEach(id => $(id).addEventListener('input', uploadEnabled));
   $('deployFirmware').addEventListener('click', async () => {
     if (uploading || $('deployFirmware').disabled) return;
     const file = $('fwFile').files[0];
@@ -298,10 +311,10 @@
     const form = new FormData();
     form.set('target','ESP32_G09'); form.set('version',$('fwVersion').value); form.set('firmware',file);
     try {
-      const response = await fetch('/api/ota/upload', {method:'POST', headers:{Authorization:`Bearer ${$('otaToken').value}`}, body:form, signal:AbortSignal.timeout(60000)});
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      const response = await fetch('/api/ota/upload', {method:'POST', body:form, signal:AbortSignal.timeout(60000)});
+      if (!response.ok) throw new Error(`Deploy gagal: ${response.status} ${await response.text()}`);
       const result = await response.json();
-      const verify = await fetch(`/api/ota/manifest/${encodeURIComponent(result.id)}`,{headers:{Authorization:`Bearer ${$('otaToken').value}`},cache:'no-store',signal:AbortSignal.timeout(10000)});
+      const verify = await fetch(`/api/ota/manifest/${encodeURIComponent(result.id)}`,{cache:'no-store',signal:AbortSignal.timeout(10000)});
       if (!verify.ok || (await verify.json()).sha256 !== result.sha256) throw new Error('Readback manifest gagal');
       $('otaFeedback').textContent = `Upload ke server selesai. ID ${result.id}; firmware ${result.firmware_version}; ${result.size_bytes} byte; SHA-256 ${result.sha256}. Hardware belum dikonfirmasi; tidak ada flashing atau aktivasi. Kompatibilitas belum terbukti.`;
     } catch (error) { $('otaFeedback').textContent = `Upload/readback gagal: ${error.message}. Hardware tidak diubah.`; }

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "schema_version": 1,
+    "purpose": "synthetic_test",
+    "label_provenance": {
+      "kind": "synthetic_test",
+      "verified_by": "fixture generator",
+      "evidence": "CONTOH PILOT P0; hanya untuk pengujian dashboard"
+    },
+    "group_ids": [
+      "g1",
+      "g2",
+      "g3"
+    ],
+    "feature_names": [
+      "s1"
+    ],
+    "feature_units": [
+      "V"
+    ],
+    "interval_ms": 10,
+    "samples": [
+      {
+        "sample_id": "s1",
+        "session_id": "q1",
+        "group_id": "g1",
+        "split": "train",
+        "labels": [
+          "Arabica",
+          "Natural",
+          "Grade 1"
+        ],
+        "values": [
+          [
+            1.0
+          ],
+          [
+            1.1
+          ],
+          [
+            1.2
+          ]
+        ]
+      },
+      {
+        "sample_id": "s2",
+        "session_id": "q2",
+        "group_id": "g2",
+        "split": "validation",
+        "labels": [
+          "Arabica",
+          "Natural",
+          "Grade 1"
+        ],
+        "values": [
+          [
+            1.0
+          ],
+          [
+            1.1
+          ],
+          [
+            1.2
+          ]
+        ]
+      },
+      {
+        "sample_id": "s3",
+        "session_id": "q3",
+        "group_id": "g3",
+        "split": "test",
+        "labels": [
+          "Arabica",
+          "Natural",
+          "Grade 2"
+        ],
+        "values": [
+          [
+            1.0
+          ],
+          [
+            1.1
+          ],
+          [
+            1.2
+          ]
+        ]
+      }
+    ]
+  },
+  "model": {
+    "format": "edge_impulse_opaque",
+    "bytes_hex": "50494c4f545f50305f454447455f494d50554c53455f4d4f44454c5f4259544553"
+  },
+  "experiment": {
+    "name": "Pilot P0 Grade Classifier",
+    "engine": "edge_impulse",
+    "model_sha256": "3ae5f658e220ec0cb4d2d2f03845388751f2e9f063e57e703aaa2dd923aacd34",
+    "dataset_fingerprint": "1c772d596ce12ff2b3e7e5f7c27d5c718720c42c8cb3d24eb040f04ab20f9778",
+    "test_fingerprint": "e5579195e10e41956fd0d408ac04b40ff19c631f2db56ffa365b2b52e5150934",
+    "evaluation_protocol": "heldout_group_v1",
+    "preprocessing": "External V1 details unavailable",
+    "provenance": "Test-only predictions; remote training unverified",
+    "predictions": [
+      {
+        "sample_id": "s2",
+        "labels": [
+          "Arabica",
+          "Natural",
+          "Grade 1"
+        ]
+      },
+      {
+        "sample_id": "s3",
+        "labels": [
+          "Arabica",
+          "Natural",
+          "Grade 2"
+        ]
+      }
+    ]
+  }
+}
