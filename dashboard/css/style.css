@@ -3,23 +3,20 @@
    ========================================================================== */
 
 :root {
-  /* Colors - Zinc/Slate Palette */
   --bg: #09090b;
   --surface: #18181b;
   --surface-alt: #27272a;
   --ink: #fafafa;
   --muted: #a1a1aa;
   --line: #3f3f46;
-  --accent: #d97706; /* Amber */
+  --accent: #d97706;
   --accent-muted: #451a03;
   --green: #22c55e;
   --red: #ef4444;
   
-  /* Typography */
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
   
-  /* Layout */
   --sidebar-width: 260px;
   --header-height: 56px;
   
@@ -55,49 +52,42 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Sidebar */
-.app-sidebar {
-  width: var(--sidebar-width);
-  background: var(--surface);
-  border-right: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-}
-
-.sidebar-brand {
+.app-header {
   height: var(--header-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
   padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--line);
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  gap: 16px;
 }
 
-.brand-mark {
-  background: var(--accent);
-  color: #fff;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: 800;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-left h1, .header-left h2 {
   font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.brand-title {
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.01em;
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
-
-.brand-subtitle {
   display: block;
   font-size: 10px;
   color: var(--muted);
