@@ -1,0 +1,187 @@
+{
+  "dataset_fingerprint": "d06f0a78335ad3ae6852fbab132afe6bee6efcf20cc85998152f76123d8fbd10",
+  "evaluation_trust": "Metrics recomputed from supplied predictions, not proof of model execution or external training isolation",
+  "experiment": {
+    "dataset_fingerprint": "d06f0a78335ad3ae6852fbab132afe6bee6efcf20cc85998152f76123d8fbd10",
+    "engine": "python_svm",
+    "evaluation_protocol": "heldout_group_v1",
+    "model_sha256": "7eefcaaf31745153ebe9859d5de7078fbf7c8faad4ea27e5e360d02c75a6c800",
+    "name": "test_svm",
+    "preprocessing": "Per-window mean/std; StandardScaler fit on train only; fixed defaults, no test tuning; independent L1/L2/L3 classifiers",
+    "provenance": "Local sklearn 1.9.1; seed 1909; synthetic_test; no remote Edge Impulse execution",
+    "test_fingerprint": "3507b63d7d7cfff1c6144d5334f888188047ba83262eb079b06fae0cc2fc4724"
+  },
+  "group_count": 18,
+  "label_status": "uploader_attestation_not_independently_verified",
+  "metrics": {
+    "test": [
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "labels": [
+          "species0",
+          "species1"
+        ],
+        "level": 1,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "labels": [
+          "roast0",
+          "roast1"
+        ],
+        "level": 2,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 0.9166666666666666,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            2
+          ]
+        ],
+        "labels": [
+          "class0",
+          "class1",
+          "class2",
+          "class3"
+        ],
+        "level": 3,
+        "macro_f1": 0.9142857142857144,
+        "support": 12
+      }
+    ],
+    "validation": [
+      {
+        "accuracy": 0.9166666666666666,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            1,
+            5
+          ]
+        ],
+        "labels": [
+          "species0",
+          "species1"
+        ],
+        "level": 1,
+        "macro_f1": 0.916083916083916,
+        "support": 12
+      },
+      {
+        "accuracy": 1.0,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "labels": [
+          "roast0",
+          "roast1"
+        ],
+        "level": 2,
+        "macro_f1": 1.0,
+        "support": 12
+      },
+      {
+        "accuracy": 0.9166666666666666,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            2
+          ]
+        ],
+        "labels": [
+          "class0",
+          "class1",
+          "class2",
+          "class3"
+        ],
+        "level": 3,
+        "macro_f1": 0.9142857142857144,
+        "support": 12
+      }
+    ]
+  },
+  "model_sha256": "7eefcaaf31745153ebe9859d5de7078fbf7c8faad4ea27e5e360d02c75a6c800",
+  "purpose": "synthetic_test",
+  "sample_count": 72,
+  "splits": {
+    "test": 12,
+    "train": 48,
+    "validation": 12
+  },
+  "test_fingerprint": "3507b63d7d7cfff1c6144d5334f888188047ba83262eb079b06fae0cc2fc4724"
+}
