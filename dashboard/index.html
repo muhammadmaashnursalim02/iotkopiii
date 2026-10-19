@@ -2524,6 +2524,7 @@
       }
 
       let currentOtaFile = null;
+      let lastCalculatedHash = "";
 
       if (otaForm) {
         otaForm.addEventListener("submit", async (e) => {
@@ -2548,6 +2549,7 @@
             hashHex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
           }
 
+          lastCalculatedHash = hashHex;
           const magicValid = firstByte === 0xe9 || file.name.endsWith(".bin");
           renderBinaryInspection({
             name: file.name,
@@ -2608,8 +2610,9 @@
             }
 
             const data = await res.json();
+            const displayHash = data.sha256 || data.checksum || lastCalculatedHash || "OK";
             otaFeedback.className = "";
-            otaFeedback.textContent = `Firmware v${ver} berhasil diunggah! Checksum: ${data.checksum ? data.checksum.substring(0, 16) : hashHex}... Menunggu sinkronisasi ESP32.`;
+            otaFeedback.textContent = `Firmware v${ver} berhasil diunggah! Checksum: ${displayHash.substring(0, 16)}... Menunggu sinkronisasi ESP32.`;
             
             if (fleetFwCell) fleetFwCell.textContent = `v${ver} (Staged)`;
             if (fleetStateCell) {
