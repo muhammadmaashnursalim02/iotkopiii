@@ -2588,7 +2588,7 @@
 
           const ver = (fwVersion ? fwVersion.value.trim() : "") || "1.0.2";
           const formData = new FormData();
-          formData.append("file", currentOtaFile);
+          formData.append("firmware", currentOtaFile);
           formData.append("version", ver);
           formData.append("target", "ESP32_G09");
 
