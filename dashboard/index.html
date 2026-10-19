@@ -2523,18 +2523,21 @@
         if (deployFirmware) deployFirmware.disabled = !meta.magicValid;
       }
 
+      let currentOtaFile = null;
+
       if (otaForm) {
         otaForm.addEventListener("submit", async (e) => {
           e.preventDefault();
-          const ver = (fwVersion ? fwVersion.value.trim() : "") || "v2.1.0_g09";
+          const ver = (fwVersion ? fwVersion.value.trim() : "") || "1.0.2";
           const file = fwFile && fwFile.files ? fwFile.files[0] : null;
 
           if (!file) {
             otaFeedback.className = "error";
-            otaFeedback.textContent = "Pilih berkas .bin terlebih dahulu atau klik 'Muat Artefak Contoh'.";
+            otaFeedback.textContent = "Pilih berkas .bin terlebih dahulu.";
             return;
           }
 
+          currentOtaFile = file;
           const buf = await file.arrayBuffer();
           const bytes = new Uint8Array(buf);
           const firstByte = bytes.length > 0 ? bytes[0] : 0;
@@ -2555,13 +2558,14 @@
           });
 
           otaFeedback.className = "";
-          otaFeedback.textContent = "Validasi lokal selesai. Checksum SHA-256 berhasil dihitung.";
+          otaFeedback.textContent = "Validasi lokal selesai. Checksum SHA-256 terhitung. Klik 'Unggah ke Server'.";
         });
       }
 
       if (btnMockBin) {
         btnMockBin.addEventListener("click", () => {
-          const ver = (fwVersion ? fwVersion.value.trim() : "") || "v2.1.0_g09_hierarchical";
+          const ver = (fwVersion ? fwVersion.value.trim() : "") || "1.0.2";
+          currentOtaFile = null;
           renderBinaryInspection({
             name: `esp32_g09_enose_${ver}.bin`,
             version: ver,
@@ -2570,19 +2574,53 @@
             sha256: "8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4"
           });
           otaFeedback.className = "";
-          otaFeedback.textContent = "Artefak simulasi ESP32_G09 berhasil divalidasi (Magic byte 0xE9 terkonfirmasi). Siap diunggah.";
+          otaFeedback.textContent = "Simulasi mockup (tidak dapat diunggah biner riil).";
         });
       }
 
       if (deployFirmware) {
-        deployFirmware.addEventListener("click", () => {
-          const ver = (fwVersion ? fwVersion.value.trim() : "") || "v2.1.0_g09_hierarchical";
+        deployFirmware.addEventListener("click", async () => {
+          if (!currentOtaFile) {
+            otaFeedback.className = "error";
+            otaFeedback.textContent = "Pilih berkas riil (.bin) melalui form sebelum mengunggah.";
+            return;
+          }
+
+          const ver = (fwVersion ? fwVersion.value.trim() : "") || "1.0.2";
+          const formData = new FormData();
+          formData.append("file", currentOtaFile);
+          formData.append("version", ver);
+          formData.append("target", "ESP32_G09");
+
+          deployFirmware.disabled = true;
           otaFeedback.className = "";
-          otaFeedback.textContent = `Artefak firmware ${ver} telah disimpan di repositori server OTA. Menunggu penjadwalan sinkronisasi ESP32_G09.`;
-          if (fleetFwCell) fleetFwCell.textContent = `${ver} (Staged)`;
-          if (fleetStateCell) {
-            fleetStateCell.textContent = "Artefak Siap di Server";
-            fleetStateCell.style.color = "var(--accent-bright)";
+          otaFeedback.textContent = "Mengunggah firmware ke backend Railway...";
+
+          try {
+            const res = await fetch("/api/ota/upload", {
+              method: "POST",
+              body: formData
+            });
+
+            if (!res.ok) {
+              const errText = await res.text();
+              throw new Error(`Upload gagal (${res.status}): ${errText}`);
+            }
+
+            const data = await res.json();
+            otaFeedback.className = "";
+            otaFeedback.textContent = `Firmware v${ver} berhasil diunggah! Checksum: ${data.checksum ? data.checksum.substring(0, 16) : hashHex}... Menunggu sinkronisasi ESP32.`;
+            
+            if (fleetFwCell) fleetFwCell.textContent = `v${ver} (Staged)`;
+            if (fleetStateCell) {
+              fleetStateCell.textContent = "Tersedia di Server OTA";
+              fleetStateCell.style.color = "var(--accent-bright)";
+            }
+          } catch (err) {
+            otaFeedback.className = "error";
+            otaFeedback.textContent = `Error: ${err.message}`;
+          } finally {
+            deployFirmware.disabled = false;
           }
         });
       }
